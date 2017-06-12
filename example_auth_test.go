@@ -1,32 +1,35 @@
-/*
-	Smartling SDK v2 auth test example
-
-	This sample does nothing except the authentication call.
-	Useful for testing your user identifier / token.
-	Replace userIdentifier and tokenSecret with your credentials
-*/
+// Smartling SDK v2 Auth Test Example.
+//
+// Example shows usage of Smartling authentication API
+// https://help.smartling.com/v1.0/reference#authentication-1
+//
+// This example does nothing except the authentication call.
+// Useful for testing your user identifier / token.
+//
+// `UserID` and `TokenSecret` should be specified in the
+// example_credentails_test.go before running that test.
 
 package smartling_test
 
 import (
+	"fmt"
 	"log"
+
+	smartling "github.com/Smartling/api-sdk-go"
 )
 
-const (
-	userIdentifier = "" // put your user identifier here
-	tokenSecret    = "" // put your token secret here
-)
-
-func main() {
-
+func ExampleAuth() {
 	log.Printf("Initializing smartling client and performing autorization")
-	client := NewClient(userIdentifier, tokenSecret)
+
+	client := smartling.NewClient(UserID, TokenSecret)
 
 	err := client.AuthenticationTest()
 	if err != nil {
-		log.Printf(err.Error())
+		fmt.Println(err)
 		return
 	}
 
-	log.Printf("Authentication is successful, your credentials are valid!")
+	fmt.Println("Authentication Successfull")
+
+	// Output: Authentication Successfull
 }

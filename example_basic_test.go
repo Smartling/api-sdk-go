@@ -5,24 +5,25 @@ package smartling_test
 import (
 	"log"
 	"time"
+
+	smartling "github.com/Smartling/api-sdk-go"
 )
 
-const (
-	userIdentifier = ""
-	tokenSecret    = ""
-	accountId      = ""
-	projectId      = ""
-)
-
-func main() {
+func ExampleBasic() {
+	const (
+		userIdentifier = ""
+		TokenSecret    = ""
+		accountId      = ""
+		projectId      = ""
+	)
 
 	log.Printf("Initializing smartling client and performing autorization")
 
-	client := NewClient(userIdentifier, tokenSecret)
+	client := smartling.NewClient(userIdentifier, TokenSecret)
 
 	log.Printf("Listing projects:")
 
-	listRequest := ProjectListRequest{
+	listRequest := smartling.ProjectListRequest{
 		ProjectNameFilter: "VCS",
 		IncludeArchived:   false,
 	}

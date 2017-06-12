@@ -1,53 +1,58 @@
-/*
-	Smartling SDK v2 files api sample
+// Smartling SDK v2 Files API Example.
 
-	Sample shows usage of smartling files api
-	http://docs.smartling.com/pages/API/v2/FileAPI/
-	Replace userIdentifier and tokenSecret with your credentials
-
-*/
+// Example shows usage of Smartling files API
+// https://help.smartling.com/v1.0/reference#upload
+//
+// `UserID` and `TokenSecret` should be specified in the
+// example_credentails_test.go before running that test.
+//
+// `AccountID` should be specified in the
+//┈example_credentails_test.go┈before┈running┈that┈test.
+//
+// `ProjectID` should be specified in the
+//┈example_credentails_test.go┈before┈running┈that┈test.
 
 package smartling_test
 
 import (
+	"fmt"
 	"log"
 	"time"
+
+	smartling "github.com/Smartling/api-sdk-go"
 )
 
-const (
-	userIdentifier = "" // put your user identifier here
-	tokenSecret    = "" // put your token secret here
-	projectId      = "" // put your project id here
-)
-
-func main() {
-
+func ExampleListFiles() {
 	log.Printf("Initializing smartling client and performing autorization")
-	client := NewClient(userIdentifier, tokenSecret)
+	client := smartling.NewClient(UserID, TokenSecret)
 
-	log.Printf("Listing project (%v) files", projectId)
+	log.Println("Listing project (%v) files", ProjectID)
 
-	log.Printf("Listing constraints:")
-	log.Printf("UriMask : 'master' (file URI must contain 'master' substring)")
-	log.Printf("LastUploadedBefore : one month back")
-	log.Printf("FileTypes : json and Java properties files")
-	listRequest := FileListRequest{
+	log.Println("Listing constraints:")
+	log.Println("\tUriMask: 'master' (file URI must contain 'master' substring)")
+	log.Println("\tLastUploadedBefore: one month back")
+	log.Println("\tFileTypes: json and Java properties files")
+
+	listRequest := smartling.FileListRequest{
 		UriMask:            "master",
-		LastUploadedBefore: Iso8601Time(time.Now().Add(time.Hour * 31 * 24 * -1)),
-		FileTypes:          []FileType{Json, JavaProperties},
+		LastUploadedBefore: smartling.Iso8601Time(time.Now().Add(time.Hour * 31 * 24 * -1)),
+		FileTypes:          []smartling.FileType{smartling.Json, smartling.JavaProperties},
 	}
-	log.Println()
 
-	files, err := client.ListFiles(projectId, listRequest)
+	files, err := client.ListFiles(ProjectID, listRequest)
 	if err != nil {
 		log.Printf("%v", err.Error())
 		return
 	}
-	log.Printf("Success!")
+	log.Println("Success!")
 
-	log.Printf("Found %v files", files.TotalCount)
+	log.Println("Found %v files", files.TotalCount)
 
 	for _, f := range files.Items {
 		log.Printf("%v", f.FileUri)
 	}
+
+	fmt.Println("Files List Successfull")
+
+	// Output: Files List Successfull
 }
