@@ -1,0 +1,1 @@
+# Smartling SDK in Golang
