@@ -12,6 +12,7 @@
 package smartling_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -25,14 +26,14 @@ func ExampleProjects_List() {
 
 	log.Printf("Listing projects for account ID %v:", AccountID)
 
-	listRequest := smartling.ProjectListRequest{
+	listRequest := smartling.ProjectsListRequest{
 		ProjectNameFilter: "",
 		IncludeArchived:   false,
 	}
 
 	projects, err := client.ListProjects(AccountID, listRequest)
 	if err != nil {
-		log.Printf(err.Error())
+		log.Fatal(err)
 		return
 	}
 
@@ -42,13 +43,18 @@ func ExampleProjects_List() {
 	)
 
 	for _, project := range projects.Items {
-		projectDetails, err := client.ProjectDetails(project.ProjectId)
+		projectDetails, err := client.GetProjectDetails(project.ProjectID)
 		if err != nil {
-			log.Printf(err.Error())
+			log.Fatal(err)
 			return
 		}
 
-		log.Printf("%+v", projectDetails)
+		data, err := json.MarshalIndent(projectDetails, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Print(string(data))
 	}
 
 	fmt.Println("Projects List Successfull")

@@ -11,19 +11,19 @@ import (
 
 func ExampleBasic() {
 	const (
-		userIdentifier = ""
-		TokenSecret    = ""
-		accountId      = ""
-		projectId      = ""
+		userID      = ""
+		TokenSecret = ""
+		accountId   = ""
+		projectId   = ""
 	)
 
 	log.Printf("Initializing smartling client and performing autorization")
 
-	client := smartling.NewClient(userIdentifier, TokenSecret)
+	client := smartling.NewClient(userID, TokenSecret)
 
 	log.Printf("Listing projects:")
 
-	listRequest := smartling.ProjectListRequest{
+	listRequest := smartling.ProjectsListRequest{
 		ProjectNameFilter: "VCS",
 		IncludeArchived:   false,
 	}
@@ -38,7 +38,7 @@ func ExampleBasic() {
 	log.Printf("Projects belonging to user account:")
 	log.Printf("%+v", projects)
 
-	projectDetails, err := client.ProjectDetails(projectId)
+	projectDetails, err := client.GetProjectDetails(projectId)
 	if err != nil {
 		log.Printf("%v", err.Error())
 		return

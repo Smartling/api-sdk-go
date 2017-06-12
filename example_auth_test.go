@@ -23,7 +23,7 @@ func ExampleAuth() {
 
 	client := smartling.NewClient(UserID, TokenSecret)
 
-	err := client.AuthenticationTest()
+	err := client.Authenticate()
 	if err != nil {
 		fmt.Println(err)
 		return

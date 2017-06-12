@@ -26,17 +26,17 @@ func ExampleListFiles() {
 	log.Printf("Initializing smartling client and performing autorization")
 	client := smartling.NewClient(UserID, TokenSecret)
 
-	log.Println("Listing project (%v) files", ProjectID)
+	log.Printf("Listing project (%v) files", ProjectID)
 
 	log.Println("Listing constraints:")
 	log.Println("\tUriMask: 'master' (file URI must contain 'master' substring)")
 	log.Println("\tLastUploadedBefore: one month back")
 	log.Println("\tFileTypes: json and Java properties files")
 
-	listRequest := smartling.FileListRequest{
-		UriMask:            "master",
-		LastUploadedBefore: smartling.Iso8601Time(time.Now().Add(time.Hour * 31 * 24 * -1)),
-		FileTypes:          []smartling.FileType{smartling.Json, smartling.JavaProperties},
+	listRequest := smartling.FilesListRequest{
+		URIMask:            "master",
+		LastUploadedBefore: smartling.UTC{time.Now().AddDate(0, -1, 0)},
+		FileTypes:          []smartling.FileType{smartling.JSON, smartling.JavaProperties},
 	}
 
 	files, err := client.ListFiles(ProjectID, listRequest)
@@ -46,10 +46,10 @@ func ExampleListFiles() {
 	}
 	log.Println("Success!")
 
-	log.Println("Found %v files", files.TotalCount)
+	log.Printf("Found %v files", files.TotalCount)
 
 	for _, f := range files.Items {
-		log.Printf("%v", f.FileUri)
+		log.Printf("%v", f.FileURI)
 	}
 
 	fmt.Println("Files List Successfull")
