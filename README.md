@@ -1,4 +1,4 @@
-# Smartling SDK in Golang
+# Smartling SDK in Golang [![](https://godoc.org/github.com/Smartling/api-sdk-go?status.svg)](http://godoc.org/github.com/Smartling/api-sdk-go)
 
 ## Examples
 
