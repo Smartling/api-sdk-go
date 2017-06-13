@@ -26,7 +26,12 @@ func (utc *UTC) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	parsed, err := time.ParseInLocation(utcFormat, formatted, nil)
+	location, err := time.LoadLocation("UTC")
+	if err != nil {
+		return err
+	}
+
+	parsed, err := time.ParseInLocation(utcFormat, formatted, location)
 	if err != nil {
 		return err
 	}
