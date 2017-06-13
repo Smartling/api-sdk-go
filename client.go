@@ -13,7 +13,7 @@ var (
 	DefaultBaseURL = "https://api.smartling.com"
 
 	// DefaultHTTPClient specifies default HTTP client which will be used
-	// for clals unless other is specified in the Client struct.
+	// for calls unless other is specified in the Client struct.
 	DefaultHTTPClient = http.Client{Timeout: 60 * time.Second}
 )
 
