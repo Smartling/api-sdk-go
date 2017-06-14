@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	endpointFilesList = "/files-api/v2/projects/%v/files/list"
-	endpointFileTypes = "/files-api/v2/projects/%v/file-types"
+	endpointFilesList = "/files-api/v2/projects/%s/files/list"
+	endpointFileTypes = "/files-api/v2/projects/%s/file-types"
 )
 
 // FilesList represents file list reply from Smartling APIa.
@@ -15,17 +15,19 @@ type FilesList struct {
 	TotalCount int
 
 	// Items contains all files matched by request.
-	Items []FileStatus
+	Items []File
 }
 
 // ListFiles returns files list from specified project by specified request.
+// Returned result is paginated, so check out TotalCount struct field in the
+// reply. API can return only 500 files at once.
 func (client *Client) ListFiles(
 	projectID string,
 	request FilesListRequest,
 ) (*FilesList, error) {
 	var list FilesList
 
-	_, _, err := client.Get(
+	_, _, err := client.GetJSON(
 		fmt.Sprintf(endpointFilesList, projectID),
 		request.GetQuery(),
 		&list,
@@ -39,24 +41,36 @@ func (client *Client) ListFiles(
 	return &list, nil
 }
 
-// ListFileTypes returns returns file types list from specified project.
-func (client *Client) ListFileTypes(
+// ListAllFiles returns all files by request, even if it requires several API
+// calls.
+func (client *Client) ListAllFiles(
 	projectID string,
-) ([]FileType, error) {
-	var result struct {
-		Items []FileType
+	request FilesListRequest,
+) ([]File, error) {
+	result := []File{}
+
+	for {
+		files, err := client.ListFiles(projectID, request)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, files.Items...)
+
+		if request.Cursor.Limit > 0 {
+			request.Cursor.Limit -= len(files.Items)
+
+			if request.Cursor.Limit == 0 {
+				break
+			}
+		}
+
+		if request.Cursor.Offset+len(files.Items) < files.TotalCount {
+			request.Cursor.Offset = len(files.Items)
+		} else {
+			break
+		}
 	}
 
-	_, _, err := client.Get(
-		fmt.Sprintf(endpointFileTypes, projectID),
-		nil,
-		&result,
-	)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to get file types: %s", err,
-		)
-	}
-
-	return result.Items, nil
+	return result, nil
 }

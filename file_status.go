@@ -1,16 +1,21 @@
 package smartling
 
-// FileStatus represents current file status in the Smartling system.
+// FileStatus describes file translation status obtained by GetFileStatus
+// method.
 type FileStatus struct {
-	// FileURI is a unique path to file in Smartling system.
-	FileURI string
+	File
 
-	// LastUploaded refers to time when file was uploaded.
-	LastUploaded UTC
+	TotalStringCount int
+	TotalWordCount   int
+	TotalCount       int
+	Items            []struct {
+		LocaleID string
 
-	// FileType is a file type identifier.
-	FileType FileType
-
-	// HasInstructions specifies does files have instructions or not.
-	HasInstructions bool
+		AuthorizedStringCount int
+		AuthorizedWordCount   int
+		CompletedStringCount  int
+		CompletedWordCount    int
+		ExcludedStringCount   int
+		ExcludedWordCount     int
+	}
 }

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,12 +22,12 @@ func (client *Client) Post(
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	return client.request("POST", url, body, result, options...)
+	return client.requestJSON("POST", url, body, result, options...)
 }
 
-// Get performs GET request to the Smartling API. You probably do not want
-// to use it.
-func (client *Client) Get(
+// GetJSON performs GET request to the smartling API and tries to decode answer
+// as JSON.
+func (client *Client) GetJSON(
 	url string,
 	params url.Values,
 	result interface{},
@@ -37,16 +37,29 @@ func (client *Client) Get(
 		url += "?" + params.Encode()
 	}
 
-	return client.request("GET", url, nil, result, options...)
+	return client.requestJSON("GET", url, nil, result, options...)
+}
+
+// Get performs raw GET request to the Smartling API. You probably do not want
+// to use it.
+func (client *Client) Get(
+	url string,
+	params url.Values,
+	options ...interface{},
+) (io.ReadCloser, int, error) {
+	if len(params) > 0 {
+		url += "?" + params.Encode()
+	}
+
+	return client.request("GET", url, nil, options...)
 }
 
 func (client *Client) request(
 	method string,
 	url string,
 	body []byte,
-	result interface{},
 	options ...interface{},
-) (json.RawMessage, int, error) {
+) (io.ReadCloser, int, error) {
 	authenticate := true
 
 	for _, option := range options {
@@ -88,12 +101,22 @@ func (client *Client) request(
 		return nil, 0, fmt.Errorf("unable to perform HTTP request: %s", err)
 	}
 
-	defer reply.Body.Close()
+	return reply.Body, reply.StatusCode, nil
+}
 
-	data, err := ioutil.ReadAll(reply.Body)
+func (client *Client) requestJSON(
+	method string,
+	url string,
+	body []byte,
+	result interface{},
+	options ...interface{},
+) (json.RawMessage, int, error) {
+	reply, code, err := client.request(method, url, body, options...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("unable to read HTTP response: %s", err)
+		return nil, code, err
 	}
+
+	defer reply.Close()
 
 	var response struct {
 		Response struct {
@@ -102,7 +125,7 @@ func (client *Client) request(
 		}
 	}
 
-	err = json.Unmarshal(data, &response)
+	err = json.NewDecoder(reply).Decode(&response)
 	if err != nil {
 		return nil, 0, fmt.Errorf(
 			"unable to decode JSON response: %s", err,
@@ -118,11 +141,11 @@ func (client *Client) request(
 	}
 
 	if result == nil {
-		return response.Response.Data, reply.StatusCode, nil
+		return response.Response.Data, code, nil
 	}
 
-	if reply.StatusCode != 200 {
-		return nil, reply.StatusCode, fmt.Errorf(
+	if code != 200 {
+		return nil, code, fmt.Errorf(
 			"API call returned non-200 status code: %s", err,
 		)
 	}
@@ -134,5 +157,5 @@ func (client *Client) request(
 		)
 	}
 
-	return nil, reply.StatusCode, nil
+	return nil, code, nil
 }

@@ -58,13 +58,13 @@ type Locale struct {
 
 // ListProjects returns projects in specified account matching specified
 // request.
-func (c *Client) ListProjects(
+func (client *Client) ListProjects(
 	accountID string,
 	request ProjectsListRequest,
 ) (*ProjectsList, error) {
 	var list ProjectsList
 
-	_, _, err := c.Get(
+	_, _, err := client.GetJSON(
 		fmt.Sprintf(endpointProjectsList, accountID),
 		request.GetQuery(),
 		&list,
@@ -79,12 +79,12 @@ func (c *Client) ListProjects(
 }
 
 // GetProjectDetails returns project details for specified project.
-func (c *Client) GetProjectDetails(
+func (client *Client) GetProjectDetails(
 	projectID string,
 ) (*ProjectDetails, error) {
 	var details ProjectDetails
 
-	_, _, err := c.Get(
+	_, _, err := client.GetJSON(
 		fmt.Sprintf(endpointProjectDetails, projectID),
 		nil,
 		&details,
