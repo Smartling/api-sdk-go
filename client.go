@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+type (
+	// LogFunction represents abstract logger function interface which
+	// can be used for setting up logging of library actions.
+	LogFunction func(format string, args ...interface{})
+)
+
 var (
 	// DefaultBaseURL specifies base URL which will be used for calls unless
 	// other is specified in the Client struct.
@@ -23,6 +29,11 @@ type Client struct {
 	Credentials *Credentials
 
 	HTTP *http.Client
+
+	Logger struct {
+		Infof  LogFunction
+		Debugf LogFunction
+	}
 }
 
 // NewClient returns new Smartling API client with specified authentication
@@ -36,5 +47,29 @@ func NewClient(userID string, tokenSecret string) *Client {
 		},
 
 		HTTP: &DefaultHTTPClient,
+
+		Logger: struct {
+			Infof  LogFunction
+			Debugf LogFunction
+		}{
+			Infof:  func(string, ...interface{}) {},
+			Debugf: func(string, ...interface{}) {},
+		},
 	}
+}
+
+// SetInfoLogger sets logger function which will be called for logging
+// informational messages like progress of file download and so on.
+func (client *Client) SetInfoLogger(logger LogFunction) *Client {
+	client.Logger.Infof = logger
+
+	return client
+}
+
+// SetDebugLogger sets logger function which will be called for logging
+// internal information like HTTP requests and their responses.
+func (client *Client) SetDebugLogger(logger LogFunction) *Client {
+	client.Logger.Debugf = logger
+
+	return client
 }

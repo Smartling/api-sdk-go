@@ -1,5 +1,6 @@
 package smartling
 
+import "fmt"
 import "time"
 
 const tokenExpirationSafetyDuration = 30 * time.Second
@@ -35,5 +36,19 @@ func (token *Token) IsSafe() bool {
 
 	return time.Now().Add(tokenExpirationSafetyDuration).Before(
 		token.ExpirationTime,
+	)
+}
+
+// String returns token representation for logging purposes only.
+func (token *Token) String() string {
+	if token == nil {
+		return "[no token]"
+	}
+
+	return fmt.Sprintf(
+		"[token=%s...{%d bytes} ttl %.2fs]",
+		token.Value[:7],
+		len(token.Value),
+		token.ExpirationTime.Sub(time.Now()).Seconds(),
 	)
 }

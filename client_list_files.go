@@ -61,7 +61,7 @@ func (client *Client) ListAllFiles(
 			request.Cursor.Limit -= len(files.Items)
 
 			if request.Cursor.Limit == 0 {
-				break
+				return result, nil
 			}
 		}
 
@@ -70,7 +70,19 @@ func (client *Client) ListAllFiles(
 		} else {
 			break
 		}
+
+		client.Logger.Infof(
+			"<= %d/%d files retrieved",
+			request.Cursor.Offset,
+			files.TotalCount,
+		)
 	}
+
+	client.Logger.Infof(
+		"<= %d/%d files retrieved",
+		len(result),
+		len(result),
+	)
 
 	return result, nil
 }

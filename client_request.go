@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const (
@@ -78,6 +79,14 @@ func (client *Client) request(
 		}
 	}
 
+	token := client.Credentials.AccessToken
+
+	client.Logger.Debugf(
+		"<- %s %s %s [%d bytes body]", method, url, token, len(body),
+	)
+
+	startTime := time.Now()
+
 	request, err := http.NewRequest(
 		method,
 		client.BaseURL+url,
@@ -92,7 +101,7 @@ func (client *Client) request(
 	if client.Credentials.AccessToken != nil {
 		request.Header.Set(
 			"Authorization",
-			"Bearer "+client.Credentials.AccessToken.Value,
+			"Bearer "+token.Value,
 		)
 	}
 
@@ -100,6 +109,12 @@ func (client *Client) request(
 	if err != nil {
 		return nil, 0, fmt.Errorf("unable to perform HTTP request: %s", err)
 	}
+
+	client.Logger.Debugf(
+		"-> %s [took %.2fs]",
+		reply.Status,
+		time.Now().Sub(startTime).Seconds(),
+	)
 
 	return reply.Body, reply.StatusCode, nil
 }
@@ -131,6 +146,15 @@ func (client *Client) requestJSON(
 			"unable to decode JSON response: %s", err,
 		)
 	}
+
+	// we don't care about error here, it'e only for logging
+	message, _ := json.MarshalIndent(response, "", "  ")
+
+	client.Logger.Debugf(
+		"=> JSON [status=%s]\n%s",
+		response.Response.Code,
+		message,
+	)
 
 	if strings.ToLower(response.Response.Code) != "success" {
 		return nil, 0, fmt.Errorf(
