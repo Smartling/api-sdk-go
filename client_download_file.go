@@ -6,23 +6,21 @@ import (
 )
 
 const (
-	endpointDownloadFile = "/files-api/v2/projects/%s/locales/%s/file"
+	endpointDownloadFile = "/files-api/v2/projects/%s/file"
 )
 
-// DownloadFile downloads specified translated file for specified locale.
-// Check FileDownloadRequest for more options.
+// DownloadFile downloads original file from project.
 func (client *Client) DownloadFile(
 	projectID string,
-	localeID string,
-	request FileDownloadRequest,
+	uri string,
 ) (io.Reader, error) {
 	reader, _, err := client.Get(
-		fmt.Sprintf(endpointDownloadFile, projectID, localeID),
-		request.GetQuery(),
+		fmt.Sprintf(endpointDownloadFile, projectID),
+		FileURIRequest{FileURI: uri}.GetQuery(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to download file: %s", err,
+			"failed to download original file: %s", err,
 		)
 	}
 

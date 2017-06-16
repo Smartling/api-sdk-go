@@ -8,14 +8,6 @@ type FileStatus struct {
 	TotalStringCount int
 	TotalWordCount   int
 	TotalCount       int
-	Items            []struct {
-		LocaleID string
 
-		AuthorizedStringCount int
-		AuthorizedWordCount   int
-		CompletedStringCount  int
-		CompletedWordCount    int
-		ExcludedStringCount   int
-		ExcludedWordCount     int
-	}
+	Items []FileStatusTranslation
 }
