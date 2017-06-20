@@ -54,6 +54,9 @@ type Locale struct {
 
 	// Description describes locale.
 	Description string
+
+	// Enabled is a flag that represents is locale enabled or not.
+	Enabled bool
 }
 
 // ListProjects returns projects in specified account matching specified
