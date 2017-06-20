@@ -23,7 +23,7 @@ func (client *Client) Post(
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	return client.requestJSON("POST", url, body, result, options...)
+	return client.requestJSON("POST", url, nil, body, result, options...)
 }
 
 // GetJSON performs GET request to the smartling API and tries to decode answer
@@ -34,11 +34,7 @@ func (client *Client) GetJSON(
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	if len(params) > 0 {
-		url += "?" + params.Encode()
-	}
-
-	return client.requestJSON("GET", url, nil, result, options...)
+	return client.requestJSON("GET", url, params, nil, result, options...)
 }
 
 // Get performs raw GET request to the Smartling API. You probably do not want
@@ -48,44 +44,55 @@ func (client *Client) Get(
 	params url.Values,
 	options ...interface{},
 ) (io.ReadCloser, int, error) {
-	if len(params) > 0 {
-		url += "?" + params.Encode()
-	}
-
-	return client.request("GET", url, nil, options...)
+	return client.request("GET", url, params, nil, options...)
 }
 
 func (client *Client) request(
 	method string,
 	url string,
+	params url.Values,
 	body []byte,
 	options ...interface{},
 ) (io.ReadCloser, int, error) {
-	authenticate := true
+	var (
+		authenticate = true
+		contentType  = "application/json"
+	)
 
 	for _, option := range options {
 		switch value := option.(type) {
 		case AuthenticationOption:
 			authenticate = bool(value)
+
+		case ContentTypeOption:
+			contentType = string(value)
 		}
 	}
 
 	if authenticate {
 		err := client.Authenticate()
 		if err != nil {
-			return nil, 0, fmt.Errorf(
-				"unable to authenticate: %s", err,
-			)
+			return nil, 0, fmt.Errorf("unable to authenticate: %s", err)
 		}
 	}
 
 	token := client.Credentials.AccessToken
 
-	client.Logger.Debugf(
-		"<- %s %s %s [%d bytes body]", method, url, token, len(body),
-	)
+	if body != nil {
+		client.Logger.Debugf(
+			"<- %s %s %s [body %d bytes]", method, url, token, len(body),
+		)
+	} else {
+		client.Logger.Debugf(
+			"<- %s %s %s", method, url, token,
+		)
+	}
 
 	startTime := time.Now()
+
+	if len(params) > 0 {
+		url += "?" + params.Encode()
+	}
 
 	request, err := http.NewRequest(
 		method,
@@ -96,13 +103,10 @@ func (client *Client) request(
 		return nil, 0, fmt.Errorf("unable to create HTTP request: %s", err)
 	}
 
-	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Content-Type", contentType)
 
 	if client.Credentials.AccessToken != nil {
-		request.Header.Set(
-			"Authorization",
-			"Bearer "+token.Value,
-		)
+		request.Header.Set("Authorization", "Bearer "+token.Value)
 	}
 
 	reply, err := client.HTTP.Do(request)
@@ -122,11 +126,12 @@ func (client *Client) request(
 func (client *Client) requestJSON(
 	method string,
 	url string,
+	params url.Values,
 	body []byte,
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	reply, code, err := client.request(method, url, body, options...)
+	reply, code, err := client.request(method, url, params, body, options...)
 	if err != nil {
 		return nil, code, err
 	}
@@ -147,7 +152,7 @@ func (client *Client) requestJSON(
 		)
 	}
 
-	// we don't care about error here, it'e only for logging
+	// we don't care about error here, it's only for logging
 	message, _ := json.MarshalIndent(response, "", "  ")
 
 	client.Logger.Debugf(
