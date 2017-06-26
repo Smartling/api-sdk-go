@@ -8,6 +8,7 @@ const (
 	endpointFileDelete = "/files-api/v2/projects/%s/file/delete"
 )
 
+// DeleteFile removes specified files from project.
 func (client *Client) DeleteFile(
 	projectID string,
 	uri string,
