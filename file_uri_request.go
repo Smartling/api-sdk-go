@@ -1,6 +1,8 @@
 package smartling
 
 import (
+	"bytes"
+	"mime/multipart"
 	"net/url"
 )
 
@@ -16,4 +18,23 @@ func (request FileURIRequest) GetQuery() url.Values {
 	query.Set("fileUri", request.FileURI)
 
 	return query
+}
+
+func (request *FileURIRequest) GetForm() (string, []byte, error) {
+	var (
+		body   = &bytes.Buffer{}
+		writer = multipart.NewWriter(body)
+	)
+
+	err := writer.WriteField("fileUri", request.FileURI)
+	if err != nil {
+		return "", nil, err
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return "", nil, err
+	}
+
+	return writer.FormDataContentType(), body.Bytes(), nil
 }

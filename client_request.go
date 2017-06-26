@@ -145,6 +145,12 @@ func (client *Client) requestJSON(
 		}
 	}
 
+	if code != 200 {
+		return nil, code, fmt.Errorf(
+			"API call returned non-200 status code: %d", code,
+		)
+	}
+
 	err = json.NewDecoder(reply).Decode(&response)
 	if err != nil {
 		return nil, 0, fmt.Errorf(
@@ -171,12 +177,6 @@ func (client *Client) requestJSON(
 
 	if result == nil {
 		return response.Response.Data, code, nil
-	}
-
-	if code != 200 {
-		return nil, code, fmt.Errorf(
-			"API call returned non-200 status code: %s", err,
-		)
 	}
 
 	err = json.Unmarshal(response.Response.Data, result)
