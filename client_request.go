@@ -79,9 +79,17 @@ func (client *Client) request(
 	token := client.Credentials.AccessToken
 
 	if body != nil {
-		client.Logger.Debugf(
-			"<- %s %s %s [body %d bytes]", method, url, token, len(body),
-		)
+		if contentType == "application/json" {
+			client.Logger.Debugf(
+				"<- %s %s %s [body %d bytes]\n%s",
+				method, url, token, len(body), body,
+			)
+		} else {
+			client.Logger.Debugf(
+				"<- %s %s %s [body %d bytes form data]",
+				method, url, token, len(body),
+			)
+		}
 	} else {
 		client.Logger.Debugf(
 			"<- %s %s %s", method, url, token,
