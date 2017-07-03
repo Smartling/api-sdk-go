@@ -113,6 +113,7 @@ func (client *Client) request(
 	}
 
 	request.Header.Set("Content-Type", contentType)
+	request.Header.Set("User-Agent", client.UserAgent)
 
 	if client.Credentials.AccessToken != nil {
 		request.Header.Set("Authorization", "Bearer "+token.Value)

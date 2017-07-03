@@ -14,6 +14,9 @@ type (
 )
 
 var (
+	// Version is a API SDK version, sent in User-Agent header.
+	Version = "1.0"
+
 	// DefaultBaseURL specifies base URL which will be used for calls unless
 	// other is specified in the Client struct.
 	DefaultBaseURL = "https://api.smartling.com"
@@ -21,6 +24,9 @@ var (
 	// DefaultHTTPClient specifies default HTTP client which will be used
 	// for calls unless other is specified in the Client struct.
 	DefaultHTTPClient = http.Client{Timeout: 60 * time.Second}
+
+	// DefaultUserAgent is a string that will be sent in User-Agent header.
+	DefaultUserAgent = "smartling-api-sdk-go"
 )
 
 // Client represents Smartling API client.
@@ -34,6 +40,8 @@ type Client struct {
 		Infof  LogFunction
 		Debugf LogFunction
 	}
+
+	UserAgent string
 }
 
 // NewClient returns new Smartling API client with specified authentication
@@ -55,6 +63,8 @@ func NewClient(userID string, tokenSecret string) *Client {
 			Infof:  func(string, ...interface{}) {},
 			Debugf: func(string, ...interface{}) {},
 		},
+
+		UserAgent: DefaultUserAgent + "/" + Version,
 	}
 }
 
