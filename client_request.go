@@ -205,7 +205,7 @@ func (client *Client) requestJSON(
 		message,
 	)
 
-	if strings.ToLower(response.Response.Code) != "success" {
+	if strings.ToLower(response.Response.Code) != successResponseCode {
 		return nil, 0, APIError{
 			Cause: fmt.Errorf(
 				`unexpected response status (expected "%s"): %#v`,
