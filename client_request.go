@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,11 +20,11 @@ const (
 // to use it.
 func (client *Client) Post(
 	url string,
-	body []byte,
+	payload []byte,
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	return client.requestJSON("POST", url, nil, body, result, options...)
+	return client.requestJSON("POST", url, nil, payload, result, options...)
 }
 
 // GetJSON performs GET request to the smartling API and tries to decode answer
@@ -51,7 +52,7 @@ func (client *Client) request(
 	method string,
 	url string,
 	params url.Values,
-	body []byte,
+	payload []byte,
 	options ...interface{},
 ) (io.ReadCloser, int, error) {
 	var (
@@ -78,16 +79,16 @@ func (client *Client) request(
 
 	token := client.Credentials.AccessToken
 
-	if body != nil {
+	if payload != nil {
 		if contentType == "application/json" {
 			client.Logger.Debugf(
-				"<- %s %s %s [body %d bytes]\n%s",
-				method, url, token, len(body), body,
+				"<- %s %s %s [payload %d bytes]\n%s",
+				method, url, token, len(payload), payload,
 			)
 		} else {
 			client.Logger.Debugf(
-				"<- %s %s %s [body %d bytes form data]",
-				method, url, token, len(body),
+				"<- %s %s %s [payload %d bytes form data]",
+				method, url, token, len(payload),
 			)
 		}
 	} else {
@@ -105,7 +106,7 @@ func (client *Client) request(
 	request, err := http.NewRequest(
 		method,
 		client.BaseURL+url,
-		bytes.NewBuffer(body),
+		bytes.NewBuffer(payload),
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("unable to create HTTP request: %s", err)
@@ -135,11 +136,11 @@ func (client *Client) requestJSON(
 	method string,
 	url string,
 	params url.Values,
-	body []byte,
+	payload []byte,
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	reply, code, err := client.request(method, url, params, body, options...)
+	reply, code, err := client.request(method, url, params, payload, options...)
 	if err != nil {
 		return nil, code, err
 	}
@@ -153,17 +154,45 @@ func (client *Client) requestJSON(
 		}
 	}
 
-	if code != 200 {
-		return nil, code, fmt.Errorf(
-			"API call returned non-200 status code: %d", code,
-		)
+	body, err := ioutil.ReadAll(reply)
+	if err != nil {
+		return nil, code, APIError{
+			Cause:   err,
+			URL:     url,
+			Payload: payload,
+		}
 	}
 
-	err = json.NewDecoder(reply).Decode(&response)
+	if code != 200 {
+		switch code {
+		case 200:
+			// ok
+
+		case 401:
+			return nil, code, NotAuthorizedError{}
+
+		case 404:
+			return nil, code, NotFoundError{}
+
+		default:
+			return nil, code, APIError{
+				Cause: fmt.Errorf(
+					"API call returned unexpected HTTP code: %d", code,
+				),
+				URL:      url,
+				Params:   params,
+				Payload:  payload,
+				Response: body,
+			}
+		}
+	}
+
+	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return nil, 0, fmt.Errorf(
-			"unable to decode JSON response: %s", err,
-		)
+		return nil, 0, JSONError{
+			Cause:    err,
+			Response: body,
+		}
 	}
 
 	// we don't care about error here, it's only for logging
@@ -176,11 +205,17 @@ func (client *Client) requestJSON(
 	)
 
 	if strings.ToLower(response.Response.Code) != "success" {
-		return nil, 0, fmt.Errorf(
-			`unexpected response status (expected "%s"): %#v`,
-			successResponseCode,
-			response.Response.Code,
-		)
+		return nil, 0, APIError{
+			Cause: fmt.Errorf(
+				`unexpected response status (expected "%s"): %#v`,
+				successResponseCode,
+				response.Response.Code,
+			),
+			URL:      url,
+			Params:   params,
+			Payload:  payload,
+			Response: body,
+		}
 	}
 
 	if result == nil {
@@ -189,9 +224,15 @@ func (client *Client) requestJSON(
 
 	err = json.Unmarshal(response.Response.Data, result)
 	if err != nil {
-		return nil, 0, fmt.Errorf(
-			"unable to decode API response data: %s", err,
-		)
+		return nil, 0, APIError{
+			Cause: fmt.Errorf(
+				"unable to decode API response data: %s", err,
+			),
+			URL:      url,
+			Params:   params,
+			Payload:  payload,
+			Response: body,
+		}
 	}
 
 	return nil, code, nil
