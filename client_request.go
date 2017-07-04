@@ -14,6 +14,7 @@ import (
 
 const (
 	successResponseCode = "success"
+	validationErrorCode = "validation_error"
 )
 
 // Post performs POST request to the Smartling API. You probably do not want
@@ -45,7 +46,12 @@ func (client *Client) Get(
 	params url.Values,
 	options ...interface{},
 ) (io.ReadCloser, int, error) {
-	return client.request("GET", url, params, nil, options...)
+	reply, err := client.request("GET", url, params, nil, options...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return reply.Body, reply.StatusCode, nil
 }
 
 func (client *Client) request(
@@ -54,7 +60,7 @@ func (client *Client) request(
 	params url.Values,
 	payload []byte,
 	options ...interface{},
-) (io.ReadCloser, int, error) {
+) (*http.Response, error) {
 	var (
 		authenticate = true
 		contentType  = "application/json"
@@ -73,7 +79,7 @@ func (client *Client) request(
 	if authenticate {
 		err := client.Authenticate()
 		if err != nil {
-			return nil, 0, fmt.Errorf("unable to authenticate: %s", err)
+			return nil, fmt.Errorf("unable to authenticate: %s", err)
 		}
 	}
 
@@ -109,7 +115,7 @@ func (client *Client) request(
 		bytes.NewBuffer(payload),
 	)
 	if err != nil {
-		return nil, 0, fmt.Errorf("unable to create HTTP request: %s", err)
+		return nil, fmt.Errorf("unable to create HTTP request: %s", err)
 	}
 
 	request.Header.Set("Content-Type", contentType)
@@ -121,7 +127,7 @@ func (client *Client) request(
 
 	reply, err := client.HTTP.Do(request)
 	if err != nil {
-		return nil, 0, fmt.Errorf("unable to perform HTTP request: %s", err)
+		return nil, fmt.Errorf("unable to perform HTTP request: %s", err)
 	}
 
 	client.Logger.Debugf(
@@ -130,7 +136,7 @@ func (client *Client) request(
 		time.Now().Sub(startTime).Seconds(),
 	)
 
-	return reply.Body, reply.StatusCode, nil
+	return reply, nil
 }
 
 func (client *Client) requestJSON(
@@ -141,27 +147,54 @@ func (client *Client) requestJSON(
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	reply, code, err := client.request(method, url, params, payload, options...)
+	reply, err := client.request(method, url, params, payload, options...)
 	if err != nil {
-		return nil, code, err
+		return nil, 0, err
 	}
 
-	defer reply.Close()
+	defer reply.Body.Close()
 
-	var response struct {
-		Response struct {
-			Code string
-			Data json.RawMessage
-		}
-	}
+	code := reply.StatusCode
 
-	body, err := ioutil.ReadAll(reply)
+	body, err := ioutil.ReadAll(reply.Body)
 	if err != nil {
 		return nil, code, APIError{
 			Cause:   err,
 			URL:     url,
 			Payload: payload,
 		}
+	}
+
+	var response struct {
+		Response struct {
+			Code   string
+			Data   json.RawMessage
+			Errors []struct {
+				Key     string
+				Message string
+			}
+		}
+	}
+
+	contentType := reply.Header.Get("Content-Type")
+
+	if strings.HasPrefix(contentType, "application/json") {
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			return nil, code, JSONError{
+				Cause:    err,
+				Response: body,
+			}
+		}
+
+		// we don't care about error here, it's only for logging
+		message, _ := json.MarshalIndent(response, "", "  ")
+
+		client.Logger.Debugf(
+			"=> JSON [status=%s]\n%s",
+			response.Response.Code,
+			message,
+		)
 	}
 
 	if code != 200 {
@@ -176,34 +209,25 @@ func (client *Client) requestJSON(
 			return nil, code, NotFoundError{}
 
 		default:
-			return nil, code, APIError{
-				Cause: fmt.Errorf(
-					"API call returned unexpected HTTP code: %d", code,
-				),
-				URL:      url,
-				Params:   params,
-				Payload:  payload,
-				Response: body,
+			if strings.ToLower(response.Response.Code) == validationErrorCode {
+				return nil, code, ValidationError{
+					Errors: response.Response.Errors,
+				}
+			} else {
+				return nil, code, APIError{
+					Cause: fmt.Errorf(
+						"API call returned unexpected HTTP code: %d", code,
+					),
+					URL:      url,
+					Params:   params,
+					Payload:  payload,
+					Response: body,
+					Headers:  &reply.Header,
+				}
+
 			}
 		}
 	}
-
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return nil, 0, JSONError{
-			Cause:    err,
-			Response: body,
-		}
-	}
-
-	// we don't care about error here, it's only for logging
-	message, _ := json.MarshalIndent(response, "", "  ")
-
-	client.Logger.Debugf(
-		"=> JSON [status=%s]\n%s",
-		response.Response.Code,
-		message,
-	)
 
 	if strings.ToLower(response.Response.Code) != successResponseCode {
 		return nil, 0, APIError{
@@ -216,6 +240,7 @@ func (client *Client) requestJSON(
 			Params:   params,
 			Payload:  payload,
 			Response: body,
+			Headers:  &reply.Header,
 		}
 	}
 
@@ -233,6 +258,7 @@ func (client *Client) requestJSON(
 			Params:   params,
 			Payload:  payload,
 			Response: body,
+			Headers:  &reply.Header,
 		}
 	}
 

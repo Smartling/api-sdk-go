@@ -20,7 +20,7 @@ func (request FileURIRequest) GetQuery() url.Values {
 	return query
 }
 
-func (request *FileURIRequest) GetForm() (string, []byte, error) {
+func (request *FileURIRequest) GetForm() (*Form, error) {
 	var (
 		body   = &bytes.Buffer{}
 		writer = multipart.NewWriter(body)
@@ -28,13 +28,11 @@ func (request *FileURIRequest) GetForm() (string, []byte, error) {
 
 	err := writer.WriteField("fileUri", request.FileURI)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	err = writer.Close()
-	if err != nil {
-		return "", nil, err
-	}
-
-	return writer.FormDataContentType(), body.Bytes(), nil
+	return &Form{
+		Writer: writer,
+		Body:   body,
+	}, nil
 }

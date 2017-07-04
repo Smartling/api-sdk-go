@@ -2,8 +2,6 @@ package smartling
 
 import (
 	"fmt"
-
-	hierr "github.com/reconquest/hierr-go"
 )
 
 const (
@@ -23,24 +21,31 @@ func (client *Client) UploadFile(
 ) (*FileUploadResult, error) {
 	var result FileUploadResult
 
-	contentType, body, err := request.GetForm()
+	form, err := request.GetForm()
 	if err != nil {
-		return nil, hierr.Errorf(
+		return nil, fmt.Errorf(
+			"failed to create file upload form: %s",
 			err,
-			"failed to create file upload form",
+		)
+	}
+
+	err = form.Close()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to close upload file form: %s", err,
 		)
 	}
 
 	_, _, err = client.Post(
 		fmt.Sprintf(endpointUploadFile, projectID),
-		body,
+		form.Bytes(),
 		&result,
-		ContentTypeOption(contentType),
+		ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
-		return nil, hierr.Errorf(
+		return nil, fmt.Errorf(
+			"failed to download original file: %s",
 			err,
-			"failed to download original file",
 		)
 	}
 

@@ -53,7 +53,7 @@ func (request FileUploadRequest) GetQuery() url.Values {
 	return query
 }
 
-func (request *FileUploadRequest) GetForm() (string, []byte, error) {
+func (request *FileUploadRequest) GetForm() (*Form, error) {
 	var (
 		body   = &bytes.Buffer{}
 		writer = multipart.NewWriter(body)
@@ -67,26 +67,24 @@ func (request *FileUploadRequest) GetForm() (string, []byte, error) {
 		case "file":
 			writer, err := writer.CreateFormFile("file", request.FileURI)
 			if err != nil {
-				return "", nil, err
+				return nil, err
 			}
 
 			_, err = io.WriteString(writer, value)
 			if err != nil {
-				return "", nil, err
+				return nil, err
 			}
 
 		default:
 			err := writer.WriteField(key, value)
 			if err != nil {
-				return "", nil, err
+				return nil, err
 			}
 		}
 	}
 
-	err := writer.Close()
-	if err != nil {
-		return "", nil, err
-	}
-
-	return writer.FormDataContentType(), body.Bytes(), nil
+	return &Form{
+		Writer: writer,
+		Body:   body,
+	}, nil
 }

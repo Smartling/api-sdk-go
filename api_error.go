@@ -1,8 +1,12 @@
 package smartling
 
 import (
+	"bytes"
 	"fmt"
+	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
 )
 
 type APIError struct {
@@ -12,6 +16,7 @@ type APIError struct {
 	Params   url.Values
 	Payload  []byte
 	Response []byte
+	Headers  *http.Header
 }
 
 func (err APIError) Error() string {
@@ -25,28 +30,31 @@ func (err APIError) Error() string {
 		code = fmt.Sprintf(" [code %s]", code)
 	}
 
-	payload := ""
-	if len(err.Payload) > 0 {
-		payload = fmt.Sprintf(
-			"\nRequest Body:\n%s",
-			string(err.Payload),
-		)
-	}
-
-	response := ""
-	if len(err.Response) > 0 {
-		response = fmt.Sprintf(
-			"\nResponse Body:\n%s",
-			string(err.Response),
-		)
-	}
+	headers := &bytes.Buffer{}
+	_ = err.Headers.Write(headers)
 
 	return fmt.Sprintf(
-		"%s%s\nURL: %s%s%s",
+		"%s%s\nURL: %s%s%s%s",
 		err.Cause,
 		code,
 		url,
-		payload,
-		response,
+		err.section("Request Body", string(err.Payload)),
+		err.section("Response Body", string(err.Response)),
+		err.section("Response Headers", headers.String()),
+	)
+}
+
+func (err *APIError) section(header string, contents string) string {
+	if contents == "" {
+		return ""
+	}
+
+	return fmt.Sprintf(
+		"\n\n%s:\n%s",
+		header,
+		regexp.MustCompile(`(?m)^`).ReplaceAllLiteralString(
+			strings.TrimSuffix(contents, "\n"),
+			"  ",
+		),
 	)
 }
