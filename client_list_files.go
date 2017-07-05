@@ -33,6 +33,10 @@ func (client *Client) ListFiles(
 		&list,
 	)
 	if err != nil {
+		if _, ok := err.(NotFoundError); ok {
+			return nil, err
+		}
+
 		return nil, fmt.Errorf(
 			"failed to get files list: %s", err,
 		)

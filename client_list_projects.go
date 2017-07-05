@@ -93,6 +93,10 @@ func (client *Client) GetProjectDetails(
 		&details,
 	)
 	if err != nil {
+		if _, ok := err.(NotFoundError); ok {
+			return nil, err
+		}
+
 		return nil, fmt.Errorf(
 			"failed to get project details: %s", err,
 		)

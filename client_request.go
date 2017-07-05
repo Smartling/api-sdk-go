@@ -130,10 +130,16 @@ func (client *Client) request(
 		return nil, fmt.Errorf("unable to perform HTTP request: %s", err)
 	}
 
+	requestID := reply.Header.Get("X-Sl-Requestid")
+	if requestID == "" {
+		requestID = "<none>"
+	}
+
 	client.Logger.Debugf(
-		"-> %s [took %.2fs]",
+		"-> %s [took %.2fs] [X-SL-RequestID %s]",
 		reply.Status,
 		time.Now().Sub(startTime).Seconds(),
+		requestID,
 	)
 
 	return reply, nil

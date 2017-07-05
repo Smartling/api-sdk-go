@@ -27,6 +27,6 @@ func (err ValidationError) Error() string {
 		messages = append(messages, message)
 	}
 
-	return "smartling replies with validation error" +
+	return "Smartling replies with validation error" +
 		strings.Join(messages, "")
 }
