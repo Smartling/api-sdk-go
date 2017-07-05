@@ -1,7 +1,6 @@
 package smartling
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -9,13 +8,19 @@ const (
 	endpointImport = "/files-api/v2/projects/%s/locales/%s/file/import"
 )
 
+type FileImportResult struct {
+	WordCount               int
+	StringCount             int
+	TranslationImportErrors []string
+}
+
 // Import imports specified file as translation.
 func (client *Client) Import(
 	projectID string,
 	localeID string,
 	request ImportRequest,
-) (json.RawMessage, error) {
-	var result json.RawMessage
+) (*FileImportResult, error) {
+	var result FileImportResult
 
 	form, err := request.GetForm()
 	if err != nil {
@@ -45,5 +50,5 @@ func (client *Client) Import(
 		)
 	}
 
-	return result, nil
+	return &result, nil
 }
