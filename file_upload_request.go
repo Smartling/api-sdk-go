@@ -1,15 +1,9 @@
 package smartling
 
-import (
-	"bytes"
-	"io"
-	"mime/multipart"
-	"net/url"
-)
-
 type FileUploadRequest struct {
+	FileURIRequest
+
 	File      []byte
-	FileURI   string
 	FileType  FileType
 	Authorize bool
 
@@ -22,69 +16,67 @@ type FileUploadRequest struct {
 	}
 }
 
-// GetQuery returns URL value representation for file URI.
-func (request FileUploadRequest) GetQuery() url.Values {
-	query := url.Values{}
+func (request *FileUploadRequest) GetForm() (*Form, error) {
+	form, err := request.FileURIRequest.GetForm()
+	if err != nil {
+		return nil, err
+	}
 
-	query.Set("file", string(request.File))
-	query.Set("fileUri", request.FileURI)
-	query.Set("fileType", string(request.FileType))
+	writer, err := form.Writer.CreateFormFile("file", request.FileURI)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = writer.Write(request.File)
+	if err != nil {
+		return nil, err
+	}
+
+	err = form.Writer.WriteField("fileType", string(request.FileType))
+	if err != nil {
+		return nil, err
+	}
 
 	if request.Authorize {
-		query.Set("authorize", "true")
-	}
-
-	for _, locale := range request.LocalesToAuthorize {
-		query.Add("localeIdsToAuthorize", locale)
-	}
-
-	if request.Smartling.Namespace != "" {
-		query.Set("smartling.namespace", request.Smartling.Namespace)
-	}
-
-	if request.Smartling.FileCharset != "" {
-		query.Set("smartling.file_charset", request.Smartling.FileCharset)
-	}
-
-	for directive, value := range request.Smartling.Directives {
-		query.Set("smartling."+directive, value)
-	}
-
-	return query
-}
-
-func (request *FileUploadRequest) GetForm() (*Form, error) {
-	var (
-		body   = &bytes.Buffer{}
-		writer = multipart.NewWriter(body)
-		query  = request.GetQuery()
-	)
-
-	for key, _ := range query {
-		value := query.Get(key)
-
-		switch key {
-		case "file":
-			writer, err := writer.CreateFormFile("file", request.FileURI)
-			if err != nil {
-				return nil, err
-			}
-
-			_, err = io.WriteString(writer, value)
-			if err != nil {
-				return nil, err
-			}
-
-		default:
-			err := writer.WriteField(key, value)
-			if err != nil {
-				return nil, err
-			}
+		err = form.Writer.WriteField("authorize", "true")
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	return &Form{
-		Writer: writer,
-		Body:   body,
-	}, nil
+	for _, locale := range request.LocalesToAuthorize {
+		err = form.Writer.WriteField("localeIdsToAuthorize", locale)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if request.Smartling.Namespace != "" {
+		err = form.Writer.WriteField(
+			"smartling.namespace",
+			request.Smartling.Namespace,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if request.Smartling.FileCharset != "" {
+		err = form.Writer.WriteField(
+			"smartling.file_charset",
+			request.Smartling.FileCharset,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for directive, value := range request.Smartling.Directives {
+		err = form.Writer.WriteField("smartling."+directive, value)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return form, nil
 }
