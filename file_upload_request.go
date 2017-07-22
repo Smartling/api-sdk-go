@@ -45,7 +45,7 @@ func (request *FileUploadRequest) GetForm() (*Form, error) {
 	}
 
 	for _, locale := range request.LocalesToAuthorize {
-		err = form.Writer.WriteField("localeIdsToAuthorize", locale)
+		err = form.Writer.WriteField("localeIdsToAuthorize[]", locale)
 		if err != nil {
 			return nil, err
 		}
