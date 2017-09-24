@@ -64,6 +64,10 @@ func (client *Client) Authenticate() error {
 
 	_, _, err = client.Post(url, payload, &response, WithoutAuthentication)
 	if err != nil {
+		if _, ok := err.(NotAuthorizedError); ok {
+			return err
+		}
+
 		return fmt.Errorf(
 			"authenticate request failed: %s", err,
 		)
