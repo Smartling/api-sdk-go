@@ -55,6 +55,8 @@ func (request FileDownloadRequest) GetQuery() url.Values {
 
 	if request.IncludeOriginal {
 		query.Set("includeOriginalStrings", "true")
+	}else{
+		query.Set("includeOriginalStrings", "false")
 	}
 
 	return query
