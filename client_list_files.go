@@ -70,7 +70,7 @@ func (client *Client) ListAllFiles(
 		}
 
 		if request.Cursor.Offset+len(files.Items) < files.TotalCount {
-			request.Cursor.Offset = len(files.Items)
+			request.Cursor.Offset += len(files.Items)
 		} else {
 			break
 		}
