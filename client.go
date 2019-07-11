@@ -23,7 +23,7 @@ var (
 
 	// DefaultHTTPClient specifies default HTTP client which will be used
 	// for calls unless other is specified in the Client struct.
-	DefaultHTTPClient = http.Client{Timeout: 60 * time.Second}
+	DefaultHTTPClient = http.Client{Timeout: 120 * time.Second}
 
 	// DefaultUserAgent is a string that will be sent in User-Agent header.
 	DefaultUserAgent = "smartling-api-sdk-go"
