@@ -44,7 +44,7 @@ func (client *Client) UploadFile(
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to download original file: %s",
+			"failed to upload original file: %s",
 			err,
 		)
 	}

@@ -206,6 +206,8 @@ func (client *Client) requestJSON(
 	if code != 200 {
 		switch code {
 		case 200:
+			fallthrough
+		case 202:
 			// ok
 
 		case 401:
