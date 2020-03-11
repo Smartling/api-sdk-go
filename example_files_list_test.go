@@ -36,7 +36,7 @@ func ExampleListFiles() {
 	listRequest := smartling.FilesListRequest{
 		URIMask:            "master",
 		LastUploadedBefore: smartling.UTC{time.Now().AddDate(0, -1, 0)},
-		FileTypes:          []smartling.FileType{smartling.JSON, smartling.JavaProperties},
+		FileTypes:          []smartling.FileType{smartling.FileTypeJSON, smartling.FileTypeJavaProperties},
 	}
 
 	files, err := client.ListFiles(ProjectID, listRequest)
