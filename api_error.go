@@ -38,6 +38,20 @@ type APIError struct {
 	Headers  *http.Header
 }
 
+func (err APIError) Is(target error) bool {
+	t, ok := target.(APIError)
+	if !ok {
+		return false
+	}
+	return (t.Cause == nil || err.Cause.Error() == t.Cause.Error()) &&
+		(err.Code == t.Code || t.Code == "") &&
+		(err.URL == t.URL || t.URL == "")
+}
+
+func (err APIError) Unwrap() error {
+	return err.Cause
+}
+
 func (err APIError) Error() string {
 	url := err.URL
 	if len(err.Params) > 0 {

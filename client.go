@@ -26,6 +26,13 @@ import (
 	"time"
 )
 
+type ClientInterface interface {
+	UploadFile(
+		projectID string,
+		request FileUploadRequest,
+	) (*FileUploadResult, error)
+}
+
 type (
 	// LogFunction represents abstract logger function interface which
 	// can be used for setting up logging of library actions.

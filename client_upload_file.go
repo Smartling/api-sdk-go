@@ -63,7 +63,7 @@ func (client *Client) UploadFile(
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to upload original file: %s",
+			"failed to upload original file: %w",
 			err,
 		)
 	}

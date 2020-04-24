@@ -98,7 +98,7 @@ func (client *Client) request(
 	if authenticate {
 		err := client.Authenticate()
 		if err != nil {
-			return nil, fmt.Errorf("unable to authenticate: %s", err)
+			return nil, fmt.Errorf("unable to authenticate: %w", err)
 		}
 	}
 
