@@ -46,6 +46,7 @@ func ExampleProjects_List() {
 	log.Printf("Listing projects for account ID %v:", AccountID)
 
 	listRequest := smartling.ProjectsListRequest{
+		Cursor:            smartling.LimitOffsetRequest{Limit: 10},
 		ProjectNameFilter: "",
 		IncludeArchived:   false,
 	}

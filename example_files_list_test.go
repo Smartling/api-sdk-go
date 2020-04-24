@@ -53,6 +53,7 @@ func ExampleListFiles() {
 	log.Println("\tFileTypes: json and Java properties files")
 
 	listRequest := smartling.FilesListRequest{
+		Cursor:             smartling.LimitOffsetRequest{Limit: 10},
 		URIMask:            "master",
 		LastUploadedBefore: smartling.UTC{time.Now().AddDate(0, -1, 0)},
 		FileTypes:          []smartling.FileType{smartling.FileTypeJSON, smartling.FileTypeJavaProperties},
