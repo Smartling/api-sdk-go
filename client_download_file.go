@@ -38,9 +38,7 @@ func (client *Client) DownloadFile(
 		FileURIRequest{FileURI: uri}.GetQuery(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to download original file: %s", err,
-		)
+		return nil, fmt.Errorf("failed to download original file: %w", err)
 	}
 
 	return reader, nil

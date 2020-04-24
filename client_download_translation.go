@@ -40,9 +40,7 @@ func (client *Client) DownloadTranslation(
 		request.GetQuery(),
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to download translated file: %s", err,
-		)
+		return nil, fmt.Errorf("failed to download translated file: %w", err)
 	}
 
 	return reader, nil

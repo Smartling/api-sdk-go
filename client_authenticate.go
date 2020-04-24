@@ -70,7 +70,7 @@ func (client *Client) Authenticate() error {
 	payload, err := json.Marshal(params)
 	if err != nil {
 		return fmt.Errorf(
-			"unable to encode authenticate params: %s", err,
+			"unable to encode authenticate params: %w", err,
 		)
 	}
 
@@ -87,9 +87,7 @@ func (client *Client) Authenticate() error {
 			return err
 		}
 
-		return fmt.Errorf(
-			"authenticate request failed: %s", err,
-		)
+		return fmt.Errorf("authenticate request failed: %w", err)
 	}
 
 	client.Credentials.AccessToken = &Token{
