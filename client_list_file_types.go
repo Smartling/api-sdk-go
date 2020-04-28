@@ -35,9 +35,7 @@ func (client *Client) ListFileTypes(
 		&result,
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to get file types: %s", err,
-		)
+		return nil, fmt.Errorf("failed to get file types: %w", err)
 	}
 
 	return result.Items, nil

@@ -37,9 +37,7 @@ func (client *Client) LastModified(
 		&lastModifiedLocales,
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to get last modified: %s", err,
-		)
+		return nil, fmt.Errorf("failed to get last modified: %w", err)
 	}
 
 	return &lastModifiedLocales, nil

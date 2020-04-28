@@ -42,17 +42,12 @@ func (client *Client) UploadFile(
 
 	form, err := request.GetForm()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to create file upload form: %s",
-			err,
-		)
+		return nil, fmt.Errorf("failed to create file upload form: %w", err)
 	}
 
 	err = form.Close()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to close upload file form: %s", err,
-		)
+		return nil, fmt.Errorf("failed to close upload file form: %w", err)
 	}
 
 	_, _, err = client.Post(
@@ -63,7 +58,7 @@ func (client *Client) UploadFile(
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"failed to upload original file: %s",
+			"failed to upload original file: %w",
 			err,
 		)
 	}

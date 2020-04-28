@@ -92,9 +92,7 @@ func (client *Client) ListProjects(
 		&list,
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to get projects list: %s", err,
-		)
+		return nil, fmt.Errorf("failed to get projects list: %w", err)
 	}
 
 	return &list, nil
@@ -116,9 +114,7 @@ func (client *Client) GetProjectDetails(
 			return nil, err
 		}
 
-		return nil, fmt.Errorf(
-			"failed to get project details: %s", err,
-		)
+		return nil, fmt.Errorf("failed to get project details: %w", err)
 	}
 
 	return &details, nil

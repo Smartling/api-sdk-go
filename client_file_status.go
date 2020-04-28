@@ -38,9 +38,7 @@ func (client *Client) GetFileStatus(
 		&status,
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to get files list: %s", err,
-		)
+		return nil, fmt.Errorf("failed to get files list: %w", err)
 	}
 
 	return &status, nil

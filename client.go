@@ -22,9 +22,32 @@
 package smartling
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
+
+type ClientInterface interface {
+	Authenticate() error
+	DeleteFile(projectID string, uri string) error
+	DownloadFile(projectID string, uri string) (io.Reader, error)
+	DownloadTranslation(projectID string, localeID string, request FileDownloadRequest) (io.Reader, error)
+	GetFileStatus(projectID string, fileURI string) (*FileStatus, error)
+	Get(url string, params url.Values, options ...interface{}) (io.ReadCloser, int, error)
+	GetJSON(url string, params url.Values, result interface{}, options ...interface{}) (json.RawMessage, int, error)
+	GetProjectDetails(projectID string) (*ProjectDetails, error)
+	Import(projectID string, localeID string, request ImportRequest) (*FileImportResult, error)
+	LastModified(projectID string, request FileLastModifiedRequest) (*FileLastModifiedLocales, error)
+	ListAllFiles(projectID string, request FilesListRequest) ([]File, error)
+	ListFiles(projectID string, request FilesListRequest) (*FilesList, error)
+	ListFileTypes(projectID string) ([]FileType, error)
+	ListProjects(accountID string, request ProjectsListRequest) (*ProjectsList, error)
+	Post(url string, payload []byte, result interface{}, options ...interface{}) (json.RawMessage, int, error)
+	RenameFile(projectID string, oldURI string, newURI string) error
+	UploadFile(projectID string, request FileUploadRequest) (*FileUploadResult, error)
+}
 
 type (
 	// LogFunction represents abstract logger function interface which

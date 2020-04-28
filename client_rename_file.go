@@ -39,17 +39,12 @@ func (client *Client) RenameFile(
 
 	form, err := request.GetForm()
 	if err != nil {
-		return fmt.Errorf(
-			"failed to create file rename form: %s",
-			err,
-		)
+		return fmt.Errorf("failed to create file rename form: %w", err)
 	}
 
 	err = form.Close()
 	if err != nil {
-		return fmt.Errorf(
-			"unable to close file rename form: %s", err,
-		)
+		return fmt.Errorf("unable to close file rename form: %w", err)
 	}
 
 	_, _, err = client.Post(
@@ -59,9 +54,7 @@ func (client *Client) RenameFile(
 		ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
-		return fmt.Errorf(
-			"failed to rename file: %s", err,
-		)
+		return fmt.Errorf("failed to rename file: %w", err)
 	}
 
 	return nil

@@ -43,17 +43,12 @@ func (client *Client) Import(
 
 	form, err := request.GetForm()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to create import form: %s",
-			err,
-		)
+		return nil, fmt.Errorf("failed to create import form: %w", err)
 	}
 
 	err = form.Close()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to close import file form: %s", err,
-		)
+		return nil, fmt.Errorf("failed to close import file form: %w", err)
 	}
 
 	_, _, err = client.Post(
@@ -63,10 +58,7 @@ func (client *Client) Import(
 		ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to import: %s",
-			err,
-		)
+		return nil, fmt.Errorf("failed to import: %w", err)
 	}
 
 	return &result, nil

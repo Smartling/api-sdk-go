@@ -56,9 +56,7 @@ func (client *Client) ListFiles(
 			return nil, err
 		}
 
-		return nil, fmt.Errorf(
-			"failed to get files list: %s", err,
-		)
+		return nil, fmt.Errorf("failed to get files list: %w", err)
 	}
 
 	return &list, nil

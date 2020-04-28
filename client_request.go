@@ -98,7 +98,7 @@ func (client *Client) request(
 	if authenticate {
 		err := client.Authenticate()
 		if err != nil {
-			return nil, fmt.Errorf("unable to authenticate: %s", err)
+			return nil, fmt.Errorf("unable to authenticate: %w", err)
 		}
 	}
 
@@ -134,7 +134,7 @@ func (client *Client) request(
 		bytes.NewBuffer(payload),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create HTTP request: %s", err)
+		return nil, fmt.Errorf("unable to create HTTP request: %w", err)
 	}
 
 	request.Header.Set("Content-Type", contentType)
@@ -146,7 +146,7 @@ func (client *Client) request(
 
 	reply, err := client.HTTP.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("unable to perform HTTP request: %s", err)
+		return nil, fmt.Errorf("unable to perform HTTP request: %w", err)
 	}
 
 	requestID := reply.Header.Get("X-Sl-Requestid")
@@ -278,9 +278,7 @@ func (client *Client) requestJSON(
 	err = json.Unmarshal(response.Response.Data, result)
 	if err != nil {
 		return nil, 0, APIError{
-			Cause: fmt.Errorf(
-				"unable to decode API response data: %s", err,
-			),
+			Cause:    fmt.Errorf("unable to decode API response data: %w", err),
 			URL:      url,
 			Params:   params,
 			Payload:  payload,

@@ -38,17 +38,12 @@ func (client *Client) DeleteFile(
 
 	form, err := request.GetForm()
 	if err != nil {
-		return fmt.Errorf(
-			"failed to create file delete form: %s",
-			err,
-		)
+		return fmt.Errorf("failed to create file delete form: %w", err)
 	}
 
 	err = form.Close()
 	if err != nil {
-		return fmt.Errorf(
-			"failed to close file delete form: %s", err,
-		)
+		return fmt.Errorf("failed to close file delete form: %w", err)
 	}
 
 	_, _, err = client.Post(
@@ -58,9 +53,7 @@ func (client *Client) DeleteFile(
 		ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
-		return fmt.Errorf(
-			"failed to remove file: %s", err,
-		)
+		return fmt.Errorf("failed to remove file: %w", err)
 	}
 
 	return nil

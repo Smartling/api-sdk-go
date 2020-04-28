@@ -43,6 +43,7 @@ func ExampleBasic() {
 	log.Printf("Listing projects:")
 
 	listRequest := smartling.ProjectsListRequest{
+		Cursor:            smartling.LimitOffsetRequest{Limit: 10},
 		ProjectNameFilter: "VCS",
 		IncludeArchived:   false,
 	}
