@@ -23,7 +23,7 @@ type TranslationState string
 
 const (
 	TranslationStatePublished       TranslationState = "PUBLISHED"
-	TranslationStatePostTranslation                  = "POST_TRANSLATION"
+	TranslationStatePostTranslation TranslationState = "POST_TRANSLATION"
 )
 
 type ImportRequest struct {

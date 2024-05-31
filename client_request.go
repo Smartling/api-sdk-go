@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -157,7 +156,7 @@ func (client *Client) request(
 	client.Logger.Debugf(
 		"-> %s [took %.2fs] [X-SL-RequestID %s]",
 		reply.Status,
-		time.Now().Sub(startTime).Seconds(),
+		time.Since(startTime).Seconds(),
 		requestID,
 	)
 
@@ -181,7 +180,7 @@ func (client *Client) requestJSON(
 
 	code := reply.StatusCode
 
-	body, err := ioutil.ReadAll(reply.Body)
+	body, err := io.ReadAll(reply.Body)
 	if err != nil {
 		return nil, code, APIError{
 			Cause:   err,
