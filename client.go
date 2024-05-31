@@ -26,7 +26,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 type ClientInterface interface {
@@ -57,7 +56,7 @@ type (
 
 var (
 	// Version is a API SDK version, sent in User-Agent header.
-	Version = "1.0"
+	Version = "1.1"
 
 	// DefaultBaseURL specifies base URL which will be used for calls unless
 	// other is specified in the Client struct.
@@ -65,7 +64,7 @@ var (
 
 	// DefaultHTTPClient specifies default HTTP client which will be used
 	// for calls unless other is specified in the Client struct.
-	DefaultHTTPClient = http.Client{Timeout: 120 * time.Second}
+	DefaultHTTPClient = http.Client{}
 
 	// DefaultUserAgent is a string that will be sent in User-Agent header.
 	DefaultUserAgent = "smartling-api-sdk-go"

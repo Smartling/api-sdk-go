@@ -1,3 +1,3 @@
 module github.com/Smartling/api-sdk-go
 
-go 1.14
+go 1.22.3

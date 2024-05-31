@@ -24,7 +24,7 @@ import (
 	"time"
 )
 
-func (client *Client) logRequest(
+func (client *Client) LogRequest(
 	method string,
 	url string,
 	body []byte,
@@ -35,9 +35,7 @@ func (client *Client) logRequest(
 			"[token=%s...{%d bytes} ttl %.2fs]",
 			client.Credentials.AccessToken.Value[:7],
 			len(client.Credentials.AccessToken.Value),
-			client.Credentials.AccessToken.ExpirationTime.Sub(
-				time.Now(),
-			).Seconds(),
+			time.Until(client.Credentials.AccessToken.ExpirationTime).Seconds(),
 		)
 	}
 

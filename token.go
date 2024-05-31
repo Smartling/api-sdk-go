@@ -19,8 +19,10 @@
 
 package smartling
 
-import "fmt"
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 const tokenExpirationSafetyDuration = 30 * time.Second
 
@@ -68,6 +70,6 @@ func (token *Token) String() string {
 		"[token=%s...{%d bytes} ttl %.2fs]",
 		token.Value[:7],
 		len(token.Value),
-		token.ExpirationTime.Sub(time.Now()).Seconds(),
+		time.Until(token.ExpirationTime).Seconds(),
 	)
 }
