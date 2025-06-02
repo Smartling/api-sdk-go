@@ -32,7 +32,7 @@ type ProjectsListRequest struct {
 	// ProjectNameFilter specifies filter for project name.
 	ProjectNameFilter string
 
-	// IncludeArchived specifies should archived items be included or not.
+	// IncludeArchived specifies archived items be included or not.
 	IncludeArchived bool
 }
 

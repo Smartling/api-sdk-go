@@ -19,7 +19,7 @@
 
 package smartling
 
-// Credentials represents represents user credentials used to authenticate
+// Credentials represents user credentials used to authenticate
 // user in the Smartling API.
 type Credentials struct {
 	// UserID is a unique user ID for accessing Smartling API.

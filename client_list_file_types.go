@@ -21,7 +21,7 @@ package smartling
 
 import "fmt"
 
-// ListFileTypes returns returns file types list from specified project.
+// ListFileTypes returns file types list from specified project.
 func (client *Client) ListFileTypes(
 	projectID string,
 ) ([]FileType, error) {
