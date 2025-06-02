@@ -19,7 +19,7 @@
 
 package smartling
 
-// FileStatus represents current file status in the Smartling system.
+// File represents a file in the Smartling system.
 type File struct {
 	// FileURI is a unique path to file in Smartling system.
 	FileURI string
