@@ -68,7 +68,7 @@ func (client *Client) ListAllFiles(
 	projectID string,
 	request FilesListRequest,
 ) ([]File, error) {
-	result := []File{}
+	var result []File
 
 	for {
 		files, err := client.ListFiles(projectID, request)
@@ -86,11 +86,11 @@ func (client *Client) ListAllFiles(
 			}
 		}
 
-		if request.Cursor.Offset+len(files.Items) < files.TotalCount {
-			request.Cursor.Offset += len(files.Items)
-		} else {
+		if request.Cursor.Offset+len(files.Items) >= files.TotalCount {
 			break
 		}
+
+		request.Cursor.Offset += len(files.Items)
 
 		client.Logger.Infof(
 			"<= %d/%d files retrieved",

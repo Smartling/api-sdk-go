@@ -176,7 +176,11 @@ func (client *Client) requestJSON(
 		return nil, 0, err
 	}
 
-	defer reply.Body.Close()
+	defer func() {
+		if err := reply.Body.Close(); err != nil {
+			fmt.Printf("error on closing body: %s", err)
+		}
+	}()
 
 	code := reply.StatusCode
 

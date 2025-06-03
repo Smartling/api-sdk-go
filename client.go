@@ -55,7 +55,7 @@ type (
 )
 
 var (
-	// Version is a API SDK version, sent in User-Agent header.
+	// Version is an API SDK version, sent in User-Agent header.
 	Version = "1.1"
 
 	// DefaultBaseURL specifies base URL which will be used for calls unless

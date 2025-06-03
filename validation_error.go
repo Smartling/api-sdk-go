@@ -32,7 +32,7 @@ type ValidationError struct {
 }
 
 func (err ValidationError) Error() string {
-	messages := []string{}
+	var messages []string
 
 	for _, err := range err.Errors {
 		message := "\n- "

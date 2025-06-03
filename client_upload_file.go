@@ -33,7 +33,7 @@ type FileUploadResult struct {
 	WordCount   int
 }
 
-// DownloadFile downloads original file from project.
+// UploadFile uploads file
 func (client *Client) UploadFile(
 	projectID string,
 	request FileUploadRequest,

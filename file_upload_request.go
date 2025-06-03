@@ -35,62 +35,62 @@ type FileUploadRequest struct {
 	}
 }
 
-func (request *FileUploadRequest) GetForm() (*Form, error) {
-	form, err := request.FileURIRequest.GetForm()
+func (r *FileUploadRequest) GetForm() (*Form, error) {
+	form, err := r.FileURIRequest.GetForm()
 	if err != nil {
 		return nil, err
 	}
 
-	writer, err := form.Writer.CreateFormFile("file", request.FileURI)
+	writer, err := form.Writer.CreateFormFile("file", r.FileURI)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = writer.Write(request.File)
+	_, err = writer.Write(r.File)
 	if err != nil {
 		return nil, err
 	}
 
-	err = form.Writer.WriteField("fileType", string(request.FileType))
+	err = form.Writer.WriteField("fileType", string(r.FileType))
 	if err != nil {
 		return nil, err
 	}
 
-	if request.Authorize {
+	if r.Authorize {
 		err = form.Writer.WriteField("authorize", "true")
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for _, locale := range request.LocalesToAuthorize {
+	for _, locale := range r.LocalesToAuthorize {
 		err = form.Writer.WriteField("localeIdsToAuthorize[]", locale)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if request.Smartling.Namespace != "" {
+	if r.Smartling.Namespace != "" {
 		err = form.Writer.WriteField(
 			"smartling.namespace",
-			request.Smartling.Namespace,
+			r.Smartling.Namespace,
 		)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if request.Smartling.FileCharset != "" {
+	if r.Smartling.FileCharset != "" {
 		err = form.Writer.WriteField(
 			"smartling.file_charset",
-			request.Smartling.FileCharset,
+			r.Smartling.FileCharset,
 		)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for directive, value := range request.Smartling.Directives {
+	for directive, value := range r.Smartling.Directives {
 		err = form.Writer.WriteField("smartling."+directive, value)
 		if err != nil {
 			return nil, err
