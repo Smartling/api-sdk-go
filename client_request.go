@@ -178,7 +178,7 @@ func (client *Client) requestJSON(
 
 	defer func() {
 		if err := reply.Body.Close(); err != nil {
-			fmt.Printf("error on closing body: %s", err)
+			client.Logger.Debugf("error on closing body: %s", err)
 		}
 	}()
 
