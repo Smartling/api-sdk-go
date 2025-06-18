@@ -21,6 +21,7 @@ package smartling
 
 import (
 	"fmt"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 	"net/url"
 )
 
@@ -56,7 +57,7 @@ const (
 // FileDownloadRequest represents optional parameters for file download
 // operation.
 type FileDownloadRequest struct {
-	FileURIRequest
+	smfile.FileURIRequest
 
 	Type            RetrievalType
 	IncludeOriginal bool

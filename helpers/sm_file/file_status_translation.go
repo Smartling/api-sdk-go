@@ -17,10 +17,19 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
-type NotAuthorizedError struct{}
+type FileStatusTranslation struct {
+	LocaleID string
 
-func (err NotAuthorizedError) Error() string {
-	return "authentication parameters are invalid"
+	AuthorizedStringCount int
+	AuthorizedWordCount   int
+	CompletedStringCount  int
+	CompletedWordCount    int
+	ExcludedStringCount   int
+	ExcludedWordCount     int
+}
+
+func (fst FileStatusTranslation) AwaitingAuthorizationStringCount(totalStringCount int) int {
+	return totalStringCount - fst.AuthorizedStringCount - fst.ExcludedStringCount - fst.CompletedStringCount
 }

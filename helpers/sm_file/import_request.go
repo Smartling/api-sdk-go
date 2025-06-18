@@ -17,50 +17,63 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
 import (
-	"encoding/json"
-	"time"
+	"github.com/Smartling/api-sdk-go/helpers/sm_form"
 )
 
-const utcFormat = "2006-01-02T15:04:05Z"
+type TranslationState string
 
-// UTC represents time in UTC format (zero timezone).
-type UTC struct {
-	time.Time
+const (
+	TranslationStatePublished       TranslationState = "PUBLISHED"
+	TranslationStatePostTranslation TranslationState = "POST_TRANSLATION"
+)
+
+type ImportRequest struct {
+	FileURIRequest
+
+	File             []byte
+	FileType         FileType
+	TranslationState TranslationState
+	Overwrite        bool
 }
 
-// MarshalJSON returns JSON representation of UTC.
-func (utc UTC) MarshalJSON() ([]byte, error) {
-	return json.Marshal(utc.String())
-}
-
-// UnmarshalJSON parses JSON representation of UTC.
-func (utc *UTC) UnmarshalJSON(data []byte) error {
-	var formatted string
-
-	err := json.Unmarshal(data, &formatted)
+func (request *ImportRequest) GetForm() (*sm_form.Form, error) {
+	form, err := request.FileURIRequest.GetForm()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	location, err := time.LoadLocation("UTC")
+	file, err := form.Writer.CreateFormFile("file", request.FileURI)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	parsed, err := time.ParseInLocation(utcFormat, formatted, location)
+	_, err = file.Write(request.File)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	*utc = UTC{parsed}
+	err = form.Writer.WriteField("fileType", string(request.FileType))
+	if err != nil {
+		return nil, err
+	}
 
-	return nil
-}
+	err = form.Writer.WriteField(
+		"translationState",
+		string(request.TranslationState),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-// String returns string representation of UTC.
-func (utc UTC) String() string {
-	return utc.Format(utcFormat)
+	if request.Overwrite {
+		err = form.Writer.WriteField("overwrite", "true")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return form, nil
 }

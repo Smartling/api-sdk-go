@@ -22,6 +22,8 @@ package smartling
 import (
 	"fmt"
 	"io"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
@@ -29,13 +31,13 @@ const (
 )
 
 // DownloadFile downloads original file from project.
-func (client *Client) DownloadFile(
+func (c *Client) DownloadFile(
 	projectID string,
 	uri string,
 ) (io.Reader, error) {
-	reader, _, err := client.Get(
+	reader, _, err := c.Client.Get(
 		fmt.Sprintf(endpointDownloadFile, projectID),
-		FileURIRequest{FileURI: uri}.GetQuery(),
+		smfile.FileURIRequest{FileURI: uri}.GetQuery(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download original file: %w", err)

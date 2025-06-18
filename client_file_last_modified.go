@@ -19,19 +19,23 @@
 
 package smartling
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
+)
 
 const (
 	endpointFilesLastModified = "/files-api/v2/projects/%s/file/last-modified"
 )
 
-func (client *Client) LastModified(
+func (c *Client) LastModified(
 	projectID string,
-	request FileLastModifiedRequest,
-) (*FileLastModifiedLocales, error) {
-	var lastModifiedLocales FileLastModifiedLocales
+	request smfile.FileLastModifiedRequest,
+) (*smfile.FileLastModifiedLocales, error) {
+	var lastModifiedLocales smfile.FileLastModifiedLocales
 
-	_, _, err := client.GetJSON(
+	_, _, err := c.Client.GetJSON(
 		fmt.Sprintf(endpointFilesLastModified, projectID),
 		request.GetQuery(),
 		&lastModifiedLocales,

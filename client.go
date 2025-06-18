@@ -22,10 +22,10 @@
 package smartling
 
 import (
-	"encoding/json"
 	"io"
-	"net/http"
-	"net/url"
+
+	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 type ClientInterface interface {
@@ -33,94 +33,25 @@ type ClientInterface interface {
 	DeleteFile(projectID string, uri string) error
 	DownloadFile(projectID string, uri string) (io.Reader, error)
 	DownloadTranslation(projectID string, localeID string, request FileDownloadRequest) (io.Reader, error)
-	GetFileStatus(projectID string, fileURI string) (*FileStatus, error)
-	Get(url string, params url.Values, options ...interface{}) (io.ReadCloser, int, error)
-	GetJSON(url string, params url.Values, result interface{}, options ...interface{}) (json.RawMessage, int, error)
+	GetFileStatus(projectID string, fileURI string) (*smfile.FileStatus, error)
 	GetProjectDetails(projectID string) (*ProjectDetails, error)
-	Import(projectID string, localeID string, request ImportRequest) (*FileImportResult, error)
-	LastModified(projectID string, request FileLastModifiedRequest) (*FileLastModifiedLocales, error)
-	ListAllFiles(projectID string, request FilesListRequest) ([]File, error)
-	ListFiles(projectID string, request FilesListRequest) (*FilesList, error)
-	ListFileTypes(projectID string) ([]FileType, error)
-	ListProjects(accountID string, request ProjectsListRequest) (*ProjectsList, error)
-	Post(url string, payload []byte, result interface{}, options ...interface{}) (json.RawMessage, int, error)
+	Import(projectID string, localeID string, request smfile.ImportRequest) (*FileImportResult, error)
+	ListAllFiles(projectID string, request smfile.FilesListRequest) ([]smfile.File, error)
+	ListProjects(accountID string, request smfile.ProjectsListRequest) (*ProjectsList, error)
 	RenameFile(projectID string, oldURI string, newURI string) error
-	UploadFile(projectID string, request FileUploadRequest) (*FileUploadResult, error)
+	UploadFile(projectID string, request smfile.FileUploadRequest) (*smfile.FileUploadResult, error)
 }
-
-type (
-	// LogFunction represents abstract logger function interface which
-	// can be used for setting up logging of library actions.
-	LogFunction func(format string, args ...interface{})
-)
-
-var (
-	// Version is an API SDK version, sent in User-Agent header.
-	Version = "1.1"
-
-	// DefaultBaseURL specifies base URL which will be used for calls unless
-	// other is specified in the Client struct.
-	DefaultBaseURL = "https://api.smartling.com"
-
-	// DefaultHTTPClient specifies default HTTP client which will be used
-	// for calls unless other is specified in the Client struct.
-	DefaultHTTPClient = http.Client{}
-
-	// DefaultUserAgent is a string that will be sent in User-Agent header.
-	DefaultUserAgent = "smartling-api-sdk-go"
-)
 
 // Client represents Smartling API client.
 type Client struct {
-	BaseURL     string
-	Credentials *Credentials
-
-	HTTP *http.Client
-
-	Logger struct {
-		Infof  LogFunction
-		Debugf LogFunction
-	}
-
-	UserAgent string
+	Client *smclient.Client
 }
 
 // NewClient returns new Smartling API client with specified authentication
 // data.
-func NewClient(userID string, tokenSecret string) *Client {
+func NewClient(userID, tokenSecret string) *Client {
+	smclient := smclient.NewClient(userID, tokenSecret)
 	return &Client{
-		BaseURL: DefaultBaseURL,
-		Credentials: &Credentials{
-			UserID: userID,
-			Secret: tokenSecret,
-		},
-
-		HTTP: &DefaultHTTPClient,
-
-		Logger: struct {
-			Infof  LogFunction
-			Debugf LogFunction
-		}{
-			Infof:  func(string, ...interface{}) {},
-			Debugf: func(string, ...interface{}) {},
-		},
-
-		UserAgent: DefaultUserAgent + "/" + Version,
+		Client: smclient,
 	}
-}
-
-// SetInfoLogger sets logger function which will be called for logging
-// informational messages like progress of file download and so on.
-func (client *Client) SetInfoLogger(logger LogFunction) *Client {
-	client.Logger.Infof = logger
-
-	return client
-}
-
-// SetDebugLogger sets logger function which will be called for logging
-// internal information like HTTP requests and their responses.
-func (client *Client) SetDebugLogger(logger LogFunction) *Client {
-	client.Logger.Debugf = logger
-
-	return client
 }

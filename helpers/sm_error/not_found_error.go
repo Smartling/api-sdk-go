@@ -17,30 +17,10 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smerror
 
-// FileType represents file type format used in Smartling API.
-type FileType string
+type NotFoundError struct{}
 
-// Android and next are types that are supported by Smartling API.
-const (
-	FileTypeUnknown        FileType = ""
-	FileTypeAndroid        FileType = "android"
-	FileTypeIOS            FileType = "ios"
-	FileTypeGettext        FileType = "gettext"
-	FileTypeHTML           FileType = "html"
-	FileTypeJavaProperties FileType = "javaProperties"
-	FileTypeYAML           FileType = "yaml"
-	FileTypeXLIFF          FileType = "xliff"
-	FileTypeXML            FileType = "xml"
-	FileTypeJSON           FileType = "json"
-	FileTypeDOCX           FileType = "docx"
-	FileTypePPTX           FileType = "pptx"
-	FileTypeXLSX           FileType = "xlsx"
-	FileTypeIDML           FileType = "idml"
-	FileTypeQt             FileType = "qt"
-	FileTypeResx           FileType = "resx"
-	FileTypePlaintext      FileType = "plaintext"
-	FileTypeCSV            FileType = "csv"
-	FileTypeStringsdict    FileType = "stringsdict"
-)
+func (err NotFoundError) Error() string {
+	return "requested entity is not found"
+}

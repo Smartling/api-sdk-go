@@ -19,17 +19,21 @@
 
 package smartling
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
+)
 
 // ListFileTypes returns file types list from specified project.
-func (client *Client) ListFileTypes(
+func (c *Client) ListFileTypes(
 	projectID string,
-) ([]FileType, error) {
+) ([]smfile.FileType, error) {
 	var result struct {
-		Items []FileType
+		Items []smfile.FileType
 	}
 
-	_, _, err := client.Get(
+	_, _, err := c.Client.Get(
 		fmt.Sprintf(endpointFileTypes, projectID),
 		nil,
 		&result,

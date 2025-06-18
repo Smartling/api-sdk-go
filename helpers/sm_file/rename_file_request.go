@@ -17,38 +17,29 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
-import "strings"
-
-var (
-	extensions = map[string]FileType{
-		"yml":         FileTypeYAML,
-		"yaml":        FileTypeYAML,
-		"html":        FileTypeHTML,
-		"htm":         FileTypeHTML,
-		"xlf":         FileTypeXLIFF,
-		"xliff":       FileTypeXLIFF,
-		"json":        FileTypeJSON,
-		"docx":        FileTypeDOCX,
-		"pptx":        FileTypePPTX,
-		"xlsx":        FileTypeXLSX,
-		"txt":         FileTypePlaintext,
-		"ts":          FileTypeQt,
-		"idml":        FileTypeIDML,
-		"resx":        FileTypeResx,
-		"resw":        FileTypeResx,
-		"csv":         FileTypeCSV,
-		"stringsdict": FileTypeStringsdict,
-		"strings":     FileTypeIOS,
-		"po":          FileTypeGettext,
-		"pot":         FileTypeGettext,
-		"xml":         FileTypeXML,
-		"properties":  FileTypeJavaProperties,
-		"":            FileTypeUnknown,
-	}
+import (
+	"github.com/Smartling/api-sdk-go/helpers/sm_form"
 )
 
-func GetFileTypeByExtension(ext string) FileType {
-	return extensions[strings.TrimPrefix(ext, ".")]
+// RenameFileRequest represents fileUri query parameter, commonly used in API.
+type RenameFileRequest struct {
+	FileURIRequest
+
+	NewFileURI string
+}
+
+func (request *RenameFileRequest) GetForm() (*sm_form.Form, error) {
+	form, err := request.FileURIRequest.GetForm()
+	if err != nil {
+		return nil, err
+	}
+
+	err = form.Writer.WriteField("newFileUri", request.NewFileURI)
+	if err != nil {
+		return nil, err
+	}
+
+	return form, nil
 }

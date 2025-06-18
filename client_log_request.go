@@ -24,22 +24,22 @@ import (
 	"time"
 )
 
-func (client *Client) LogRequest(
+func (c *Client) LogRequest(
 	method string,
 	url string,
 	body []byte,
 ) {
 	token := "[no token]"
-	if client.Credentials.AccessToken != nil {
+	if c.Client.Credentials.AccessToken != nil {
 		token = fmt.Sprintf(
 			"[token=%s...{%d bytes} ttl %.2fs]",
-			client.Credentials.AccessToken.Value[:7],
-			len(client.Credentials.AccessToken.Value),
-			time.Until(client.Credentials.AccessToken.ExpirationTime).Seconds(),
+			c.Client.Credentials.AccessToken.Value[:7],
+			len(c.Client.Credentials.AccessToken.Value),
+			time.Until(c.Client.Credentials.AccessToken.ExpirationTime).Seconds(),
 		)
 	}
 
-	client.Logger.Debugf(
+	c.Client.Logger.Debugf(
 		"<- %s %s %s [%d bytes body]", method, url, token, len(body),
 	)
 }

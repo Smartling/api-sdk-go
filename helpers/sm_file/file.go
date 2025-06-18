@@ -17,25 +17,23 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
-// RenameFileRequest represents fileUri query parameter, commonly used in API.
-type RenameFileRequest struct {
-	FileURIRequest
+import (
+	"github.com/Smartling/api-sdk-go/helpers/utc"
+)
 
-	NewFileURI string
-}
+// File represents a file in the Smartling system.
+type File struct {
+	// FileURI is a unique path to file in Smartling system.
+	FileURI string
 
-func (request *RenameFileRequest) GetForm() (*Form, error) {
-	form, err := request.FileURIRequest.GetForm()
-	if err != nil {
-		return nil, err
-	}
+	// FileType is a file type identifier.
+	FileType FileType
 
-	err = form.Writer.WriteField("newFileUri", request.NewFileURI)
-	if err != nil {
-		return nil, err
-	}
+	// LastUploaded refers to time when file was uploaded.
+	LastUploaded utc.UTC
 
-	return form, nil
+	// HasInstructions specifies does files have instructions or not.
+	HasInstructions bool
 }

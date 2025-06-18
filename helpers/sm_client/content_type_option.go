@@ -17,26 +17,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
-type FileLastModifiedRequest struct {
-	FileURIRequest
-
-	LastModifiedAfter UTC
-}
-
-func (request *FileLastModifiedRequest) GetForm() (*Form, error) {
-	form, err := request.FileURIRequest.GetForm()
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = form.Writer.WriteField("lastModifiedAfter", request.LastModifiedAfter.String())
-
-	if err != nil {
-		return nil, err
-	}
-
-	return form, nil
-}
+// ContentTypeOption specifies content type for making request to API.
+type ContentTypeOption string

@@ -17,34 +17,40 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
 import (
-	"fmt"
-	"net/url"
+	"strings"
 )
 
-// ProjectsListRequest is a request used in GetProjectsList method.
-type ProjectsListRequest struct {
-	// Cursor specifies limit/offset pagination pair.
-	Cursor LimitOffsetRequest
-
-	// ProjectNameFilter specifies filter for project name.
-	ProjectNameFilter string
-
-	// IncludeArchived specifies archived items be included or not.
-	IncludeArchived bool
-}
-
-// GetQuery returns URL-encoded representation of current request.
-func (request ProjectsListRequest) GetQuery() url.Values {
-	query := request.Cursor.GetQuery()
-
-	if len(request.ProjectNameFilter) > 0 {
-		query.Set("projectNameFilter", request.ProjectNameFilter)
+var (
+	extensions = map[string]FileType{
+		"yml":         FileTypeYAML,
+		"yaml":        FileTypeYAML,
+		"html":        FileTypeHTML,
+		"htm":         FileTypeHTML,
+		"xlf":         FileTypeXLIFF,
+		"xliff":       FileTypeXLIFF,
+		"json":        FileTypeJSON,
+		"docx":        FileTypeDOCX,
+		"pptx":        FileTypePPTX,
+		"xlsx":        FileTypeXLSX,
+		"txt":         FileTypePlaintext,
+		"ts":          FileTypeQt,
+		"idml":        FileTypeIDML,
+		"resx":        FileTypeResx,
+		"resw":        FileTypeResx,
+		"csv":         FileTypeCSV,
+		"stringsdict": FileTypeStringsdict,
+		"strings":     FileTypeIOS,
+		"po":          FileTypeGettext,
+		"pot":         FileTypeGettext,
+		"xml":         FileTypeXML,
+		"properties":  FileTypeJavaProperties,
+		"":            FileTypeUnknown,
 	}
+)
 
-	query.Set("includeArchived", fmt.Sprint(request.IncludeArchived))
-
-	return query
+func GetFileTypeByExtension(ext string) FileType {
+	return extensions[strings.TrimPrefix(ext, ".")]
 }

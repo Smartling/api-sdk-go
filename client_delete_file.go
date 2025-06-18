@@ -21,6 +21,9 @@ package smartling
 
 import (
 	"fmt"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
@@ -28,11 +31,11 @@ const (
 )
 
 // DeleteFile removes specified files from project.
-func (client *Client) DeleteFile(
+func (c *Client) DeleteFile(
 	projectID string,
 	uri string,
 ) error {
-	request := FileURIRequest{
+	request := smfile.FileURIRequest{
 		FileURI: uri,
 	}
 
@@ -46,11 +49,11 @@ func (client *Client) DeleteFile(
 		return fmt.Errorf("failed to close file delete form: %w", err)
 	}
 
-	_, _, err = client.Post(
+	_, _, err = c.Client.Post(
 		fmt.Sprintf(endpointFileDelete, projectID),
 		form.Bytes(),
 		nil,
-		ContentTypeOption(form.GetContentType()),
+		smclient.ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to remove file: %w", err)

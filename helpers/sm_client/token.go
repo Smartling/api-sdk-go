@@ -17,41 +17,59 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
 import (
-	"bytes"
-	"mime/multipart"
-	"net/url"
+	"fmt"
+	"time"
 )
 
-// FileURIRequest represents fileUri query parameter, commonly used in API.
-type FileURIRequest struct {
-	FileURI string
+const tokenExpirationSafetyDuration = 30 * time.Second
+
+// Token represents authentication token, either access or refresh.
+type Token struct {
+	// Value is a string representation of token.
+	Value string
+
+	// ExpirationTime is a expiration time for token when it becomes invalid.
+	ExpirationTime time.Time
 }
 
-// GetQuery returns URL value representation for file URI.
-func (r FileURIRequest) GetQuery() url.Values {
-	query := url.Values{}
-
-	query.Set("fileUri", r.FileURI)
-
-	return query
-}
-
-func (r *FileURIRequest) GetForm() (*Form, error) {
-	var (
-		body   = &bytes.Buffer{}
-		writer = multipart.NewWriter(body)
-	)
-
-	err := writer.WriteField("fileUri", r.FileURI)
-	if err != nil {
-		return nil, err
+// IsValid returns true if token still can be used.
+func (token *Token) IsValid() bool {
+	if token == nil {
+		return false
 	}
 
-	return &Form{
-		Writer: writer,
-		Body:   body,
-	}, nil
+	if token.Value == "" {
+		return false
+	}
+
+	return time.Now().Before(token.ExpirationTime)
+}
+
+// IsSafe returns true if token still can be used and it's expiration time is
+// in safe bounds.
+func (token *Token) IsSafe() bool {
+	if !token.IsValid() {
+		return false
+	}
+
+	return time.Now().Add(tokenExpirationSafetyDuration).Before(
+		token.ExpirationTime,
+	)
+}
+
+// String returns token representation for logging purposes only.
+func (token *Token) String() string {
+	if token == nil {
+		return "[no token]"
+	}
+
+	return fmt.Sprintf(
+		"[token=%s...{%d bytes} ttl %.2fs]",
+		token.Value[:7],
+		len(token.Value),
+		time.Until(token.ExpirationTime).Seconds(),
+	)
 }

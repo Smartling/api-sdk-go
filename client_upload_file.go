@@ -21,24 +21,21 @@ package smartling
 
 import (
 	"fmt"
+
+	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
+	smfile "github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
 	endpointUploadFile = "/files-api/v2/projects/%s/file"
 )
 
-type FileUploadResult struct {
-	Overwritten bool
-	StringCount int
-	WordCount   int
-}
-
 // UploadFile uploads file
-func (client *Client) UploadFile(
+func (c *Client) UploadFile(
 	projectID string,
-	request FileUploadRequest,
-) (*FileUploadResult, error) {
-	var result FileUploadResult
+	request smfile.FileUploadRequest,
+) (*smfile.FileUploadResult, error) {
+	var result smfile.FileUploadResult
 
 	form, err := request.GetForm()
 	if err != nil {
@@ -50,11 +47,11 @@ func (client *Client) UploadFile(
 		return nil, fmt.Errorf("failed to close upload file form: %w", err)
 	}
 
-	_, _, err = client.Post(
+	_, _, err = c.Client.Post(
 		fmt.Sprintf(endpointUploadFile, projectID),
 		form.Bytes(),
 		&result,
-		ContentTypeOption(form.GetContentType()),
+		smclient.ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf(

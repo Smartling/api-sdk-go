@@ -30,12 +30,12 @@ const (
 
 // DownloadTranslation downloads specified translated file for specified
 // locale.  Check FileDownloadRequest for more options.
-func (client *Client) DownloadTranslation(
+func (c *Client) DownloadTranslation(
 	projectID string,
 	localeID string,
 	request FileDownloadRequest,
 ) (io.Reader, error) {
-	reader, _, err := client.Get(
+	reader, _, err := c.Client.Get(
 		fmt.Sprintf(endpointDownloadTranslation, projectID, localeID),
 		request.GetQuery(),
 	)

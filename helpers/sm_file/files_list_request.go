@@ -17,10 +17,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
 import (
 	"fmt"
+	"github.com/Smartling/api-sdk-go/helpers/utc"
 	"net/url"
 )
 
@@ -39,11 +40,11 @@ type FilesListRequest struct {
 
 	// LastUploadedAfter instructs API to return files uploaded after specified
 	// date.
-	LastUploadedAfter UTC
+	LastUploadedAfter utc.UTC
 
 	// LastUploadedBefore instructs API to return files uploaded after
 	// specified date.
-	LastUploadedBefore UTC
+	LastUploadedBefore utc.UTC
 }
 
 // GetQuery returns URL values representation of files list request.

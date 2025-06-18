@@ -17,19 +17,42 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
-type FileStatusTranslation struct {
-	LocaleID string
+import (
+	"bytes"
+	"github.com/Smartling/api-sdk-go/helpers/sm_form"
+	"mime/multipart"
+	"net/url"
+)
 
-	AuthorizedStringCount int
-	AuthorizedWordCount   int
-	CompletedStringCount  int
-	CompletedWordCount    int
-	ExcludedStringCount   int
-	ExcludedWordCount     int
+// FileURIRequest represents fileUri query parameter, commonly used in API.
+type FileURIRequest struct {
+	FileURI string
 }
 
-func (fst FileStatusTranslation) AwaitingAuthorizationStringCount(totalStringCount int) int {
-	return totalStringCount - fst.AuthorizedStringCount - fst.ExcludedStringCount - fst.CompletedStringCount
+// GetQuery returns URL value representation for file URI.
+func (r FileURIRequest) GetQuery() url.Values {
+	query := url.Values{}
+
+	query.Set("fileUri", r.FileURI)
+
+	return query
+}
+
+func (r *FileURIRequest) GetForm() (*sm_form.Form, error) {
+	var (
+		body   = &bytes.Buffer{}
+		writer = multipart.NewWriter(body)
+	)
+
+	err := writer.WriteField("fileUri", r.FileURI)
+	if err != nil {
+		return nil, err
+	}
+
+	return &sm_form.Form{
+		Writer: writer,
+		Body:   body,
+	}, nil
 }

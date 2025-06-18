@@ -17,19 +17,16 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
-import "fmt"
+// AuthenticationOption specifies should request to API use authentication or
+// not. See Post and Get methods.
+type AuthenticationOption bool
 
-type JSONError struct {
-	Cause    error
-	Response []byte
-}
+const (
+	// WithAuthentication equal to use of authentication in request.
+	WithAuthentication = AuthenticationOption(true)
 
-func (err JSONError) Error() string {
-	return fmt.Sprintf(
-		"unable to parse reply as JSON: %s\n%s",
-		err.Cause,
-		err.Response,
-	)
-}
+	// WithoutAuthentication equal to not use of authentication in request.
+	WithoutAuthentication = AuthenticationOption(false)
+)

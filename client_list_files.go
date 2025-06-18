@@ -21,6 +21,9 @@ package smartling
 
 import (
 	"fmt"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_error"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
@@ -34,25 +37,25 @@ type FilesList struct {
 	TotalCount int
 
 	// Items contains all files matched by request.
-	Items []File
+	Items []smfile.File
 }
 
 // ListFiles returns files list from specified project by specified request.
 // Returned result is paginated, so check out TotalCount struct field in the
 // reply. API can return only 500 files at once.
-func (client *Client) ListFiles(
+func (c *Client) ListFiles(
 	projectID string,
-	request FilesListRequest,
+	request smfile.FilesListRequest,
 ) (*FilesList, error) {
 	var list FilesList
 
-	_, _, err := client.GetJSON(
+	_, _, err := c.Client.GetJSON(
 		fmt.Sprintf(endpointFilesList, projectID),
 		request.GetQuery(),
 		&list,
 	)
 	if err != nil {
-		if _, ok := err.(NotFoundError); ok {
+		if _, ok := err.(smerror.NotFoundError); ok {
 			return nil, err
 		}
 
@@ -64,14 +67,14 @@ func (client *Client) ListFiles(
 
 // ListAllFiles returns all files by request, even if it requires several API
 // calls.
-func (client *Client) ListAllFiles(
+func (c *Client) ListAllFiles(
 	projectID string,
-	request FilesListRequest,
-) ([]File, error) {
-	var result []File
+	request smfile.FilesListRequest,
+) ([]smfile.File, error) {
+	var result []smfile.File
 
 	for {
-		files, err := client.ListFiles(projectID, request)
+		files, err := c.ListFiles(projectID, request)
 		if err != nil {
 			return nil, err
 		}
@@ -92,14 +95,14 @@ func (client *Client) ListAllFiles(
 
 		request.Cursor.Offset += len(files.Items)
 
-		client.Logger.Infof(
+		c.Client.Logger.Infof(
 			"<= %d/%d files retrieved",
 			request.Cursor.Offset,
 			files.TotalCount,
 		)
 	}
 
-	client.Logger.Infof(
+	c.Client.Logger.Infof(
 		"<= %d/%d files retrieved",
 		len(result),
 		len(result),

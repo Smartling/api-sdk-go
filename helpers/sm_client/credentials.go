@@ -17,42 +17,21 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
-import (
-	"fmt"
-)
+// Credentials represents user credentials used to authenticate
+// user in the Smartling API.
+type Credentials struct {
+	// UserID is a unique user ID for accessing Smartling API.
+	UserID string
 
-// FileStatus describes file translation status obtained by GetFileStatus
-// method.
-type FileStatus struct {
-	File
+	// Secret is a secret token for accessing Smartling API.
+	Secret string
 
-	TotalStringCount int
-	TotalWordCount   int
-	TotalCount       int
+	// AccessToken is a access token, which is obtained by UserID/Secret pair.
+	AccessToken *Token
 
-	Items []FileStatusTranslation
-}
-
-func (fs FileStatus) GetFileStatusTranslation(locale string) (*FileStatusTranslation, error) {
-	for i := range fs.Items {
-		if fs.Items[i].LocaleID == locale {
-			return &fs.Items[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf(
-		"failed to get file status translation for locale: %s", locale,
-	)
-}
-
-func (fs FileStatus) AwaitingAuthorizationStringCount() int {
-	c := 0
-
-	for i := range fs.Items {
-		c += fs.Items[i].AwaitingAuthorizationStringCount(fs.TotalStringCount)
-	}
-
-	return c
+	// RefreshToken is a token for refreshing access token. It has longer
+	// lifespan.
+	RefreshToken *Token
 }
