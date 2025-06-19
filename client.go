@@ -24,7 +24,7 @@ package smartling
 import (
 	"io"
 
-	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 

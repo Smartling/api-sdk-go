@@ -22,7 +22,7 @@ package smclient
 import (
 	"fmt"
 
-	smfile "github.com/Smartling/api-sdk-go/helpers/sm_file"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
@@ -36,10 +36,7 @@ type FileUploadResult struct {
 }
 
 // UploadFile uploads file
-func (c *Client) UploadFile(
-	projectID string,
-	request smfile.FileUploadRequest,
-) (*FileUploadResult, error) {
+func (c *Client) UploadFile(url string, request smfile.FileUploadRequest) (*FileUploadResult, error) {
 	var result FileUploadResult
 
 	form, err := request.GetForm()
@@ -53,7 +50,7 @@ func (c *Client) UploadFile(
 	}
 
 	_, _, err = c.Post(
-		fmt.Sprintf(endpointUploadFile, projectID),
+		url,
 		form.Bytes(),
 		&result,
 		ContentTypeOption(form.GetContentType()),

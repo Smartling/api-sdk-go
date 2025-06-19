@@ -3,8 +3,8 @@ package mt
 import (
 	"fmt"
 
-	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
-	smfile "github.com/Smartling/api-sdk-go/helpers/sm_file"
+	"github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 // FileTranslator defines file behaviour
