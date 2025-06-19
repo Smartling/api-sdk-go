@@ -31,13 +31,10 @@ func newHttpDownloader(base *base) *httpDownloader {
 // File downloads file
 func (d httpDownloader) File(accountUID AccountUID, fileUID FileUID,
 	mtUID MtUID, localeID string) (io.Reader, error) {
-	path := buildFilePath(accountUID, fileUID, mtUID, localeID)
-	url, err := joinURL(mtBasePath, path)
-	if err != nil {
-		return nil, err
-	}
+	filePath := buildFilePath(accountUID, fileUID, mtUID, localeID)
+	path := joinPath(mtBasePath, filePath)
 	reader, _, err := d.base.client.Get(
-		url,
+		path,
 		smfile.FileURIRequest{FileURI: string(fileUID)}.GetQuery(),
 	)
 	if err != nil {
@@ -49,13 +46,10 @@ func (d httpDownloader) File(accountUID AccountUID, fileUID FileUID,
 
 // Batch download files
 func (d httpDownloader) Batch(accountUID AccountUID, fileUID FileUID, mtUID MtUID) (io.Reader, error) {
-	path := buildBatchPath(accountUID, fileUID, mtUID)
-	url, err := joinURL(mtBasePath, path)
-	if err != nil {
-		return nil, err
-	}
+	batchPath := buildBatchPath(accountUID, fileUID, mtUID)
+	path := joinPath(mtBasePath, batchPath)
 	reader, _, err := d.base.client.Get(
-		url,
+		path,
 		smfile.FileURIRequest{FileURI: string(fileUID)}.GetQuery(),
 	)
 	if err != nil {
@@ -66,9 +60,9 @@ func (d httpDownloader) Batch(accountUID AccountUID, fileUID FileUID, mtUID MtUI
 }
 
 func buildFilePath(accountUID AccountUID, fileUID FileUID, mtUID MtUID, localeID string) string {
-	return string(accountUID) + "/files/" + string(fileUID) + "/mt/" + string(mtUID) + "/locales/" + localeID + "/file"
+	return "/accounts/" + string(accountUID) + "/files/" + string(fileUID) + "/mt/" + string(mtUID) + "/locales/" + localeID + "/file"
 }
 
 func buildBatchPath(accountUID AccountUID, fileUID FileUID, mtUID MtUID) string {
-	return string(accountUID) + "/files/" + string(fileUID) + "/mt/" + string(mtUID) + "/locales/all/file/zip"
+	return "/accounts/" + string(accountUID) + "/files/" + string(fileUID) + "/mt/" + string(mtUID) + "/locales/all/file/zip"
 }
