@@ -1,6 +1,7 @@
 package mt
 
 import (
+	"context"
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
 
@@ -19,7 +20,8 @@ type httpUploader struct {
 }
 
 // UploadFile uploads file
-func (h httpUploader) UploadFile() (UploadFileResponse, error) {
+func (h httpUploader) UploadFile(ctx context.Context, fileType FileType) (UploadFileResponse, error) {
 	//TODO implement me
 	panic("implement me")
+	url := "https://api.smartling.com/file-translations-api/v2/accounts/$smartlingAccountId/files"
 }
