@@ -1,5 +1,7 @@
 package mt
 
+// FileType is type for file types
+//
 //go:generate stringer -type=FileType
 type FileType int
 
