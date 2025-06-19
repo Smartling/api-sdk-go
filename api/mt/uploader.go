@@ -4,19 +4,22 @@ import (
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
 
+// Uploader defines uploader behaviour
 type Uploader interface {
-	UploadFile() error
+	UploadFile() (UploadFileResponse, error)
 }
 
+// NewUploader returns new Uploader implementation
 func NewUploader(client *smclient.Client) Uploader {
-	return httpUploader{client: client}
+	return httpUploader{base: newBase(client)}
 }
 
 type httpUploader struct {
-	client *smclient.Client
+	base *base
 }
 
-func (h httpUploader) UploadFile() error {
+// UploadFile uploads file
+func (h httpUploader) UploadFile() (UploadFileResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

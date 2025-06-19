@@ -7,3 +7,7 @@ import (
 type base struct {
 	client *smclient.Client
 }
+
+func newBase(client *smclient.Client) *base {
+	return &base{client: client}
+}

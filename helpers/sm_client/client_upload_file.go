@@ -17,12 +17,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
 import (
 	"fmt"
 
-	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 	smfile "github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
@@ -30,12 +29,18 @@ const (
 	endpointUploadFile = "/files-api/v2/projects/%s/file"
 )
 
+type FileUploadResult struct {
+	Overwritten bool
+	StringCount int
+	WordCount   int
+}
+
 // UploadFile uploads file
 func (c *Client) UploadFile(
 	projectID string,
 	request smfile.FileUploadRequest,
-) (*smfile.FileUploadResult, error) {
-	var result smfile.FileUploadResult
+) (*FileUploadResult, error) {
+	var result FileUploadResult
 
 	form, err := request.GetForm()
 	if err != nil {
@@ -47,11 +52,11 @@ func (c *Client) UploadFile(
 		return nil, fmt.Errorf("failed to close upload file form: %w", err)
 	}
 
-	_, _, err = c.Client.Post(
+	_, _, err = c.Post(
 		fmt.Sprintf(endpointUploadFile, projectID),
 		form.Bytes(),
 		&result,
-		smclient.ContentTypeOption(form.GetContentType()),
+		ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
