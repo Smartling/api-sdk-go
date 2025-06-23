@@ -43,7 +43,7 @@ type FilesList struct {
 // ListFiles returns files list from specified project by specified request.
 // Returned result is paginated, so check out TotalCount struct field in the
 // reply. API can return only 500 files at once.
-func (c *Client) ListFiles(
+func (c *httpAPIClient) ListFiles(
 	projectID string,
 	request smfile.FilesListRequest,
 ) (*FilesList, error) {
@@ -67,7 +67,7 @@ func (c *Client) ListFiles(
 
 // ListAllFiles returns all files by request, even if it requires several API
 // calls.
-func (c *Client) ListAllFiles(
+func (c *httpAPIClient) ListAllFiles(
 	projectID string,
 	request smfile.FilesListRequest,
 ) ([]smfile.File, error) {

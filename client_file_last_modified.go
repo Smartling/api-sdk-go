@@ -29,7 +29,7 @@ const (
 	endpointFilesLastModified = "/files-api/v2/projects/%s/file/last-modified"
 )
 
-func (c *Client) LastModified(
+func (c *httpAPIClient) LastModified(
 	projectID string,
 	request smfile.FileLastModifiedRequest,
 ) (*smfile.FileLastModifiedLocales, error) {

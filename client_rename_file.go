@@ -31,7 +31,7 @@ const (
 )
 
 // RenameFile renames file to new URI.
-func (c *Client) RenameFile(
+func (c *httpAPIClient) RenameFile(
 	projectID string,
 	oldURI string,
 	newURI string,

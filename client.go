@@ -28,7 +28,7 @@ import (
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
-type ClientInterface interface {
+type APIClient interface {
 	Authenticate() error
 	DeleteFile(projectID string, uri string) error
 	DownloadFile(projectID string, uri string) (io.Reader, error)
@@ -43,15 +43,15 @@ type ClientInterface interface {
 }
 
 // Client represents Smartling API client.
-type Client struct {
+type httpAPIClient struct {
 	Client *smclient.Client
 }
 
-// NewClient returns new Smartling API client with specified authentication
+// NewAPIClient returns new Smartling API client with specified authentication
 // data.
-func NewClient(userID, tokenSecret string) *Client {
+func NewAPIClient(userID, tokenSecret string) APIClient {
 	smclient := smclient.NewClient(userID, tokenSecret)
-	return &Client{
+	return &httpAPIClient{
 		Client: smclient,
 	}
 }
