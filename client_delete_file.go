@@ -31,7 +31,7 @@ const (
 )
 
 // DeleteFile removes specified files from project.
-func (c *httpAPIClient) DeleteFile(
+func (c *HttpAPIClient) DeleteFile(
 	projectID string,
 	uri string,
 ) error {

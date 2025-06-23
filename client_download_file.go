@@ -31,7 +31,7 @@ const (
 )
 
 // DownloadFile downloads original file from project.
-func (c *httpAPIClient) DownloadFile(
+func (c *HttpAPIClient) DownloadFile(
 	projectID string,
 	uri string,
 ) (io.Reader, error) {

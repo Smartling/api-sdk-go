@@ -30,7 +30,7 @@ const (
 
 // DownloadTranslation downloads specified translated file for specified
 // locale.  Check FileDownloadRequest for more options.
-func (c *httpAPIClient) DownloadTranslation(
+func (c *HttpAPIClient) DownloadTranslation(
 	projectID string,
 	localeID string,
 	request FileDownloadRequest,

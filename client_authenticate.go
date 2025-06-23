@@ -21,6 +21,6 @@ package smartling
 
 // Authenticate checks that access and refresh tokens are valid and refreshes
 // them if needed.
-func (c *httpAPIClient) Authenticate() error {
+func (c *HttpAPIClient) Authenticate() error {
 	return c.Client.Authenticate()
 }

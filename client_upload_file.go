@@ -24,7 +24,7 @@ import (
 )
 
 // UploadFile uploads file
-func (c httpAPIClient) UploadFile(
+func (c HttpAPIClient) UploadFile(
 	projectID string,
 	request smfile.FileUploadRequest,
 ) (*smfile.FileUploadResult, error) {

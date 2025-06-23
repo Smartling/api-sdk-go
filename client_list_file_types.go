@@ -26,7 +26,7 @@ import (
 )
 
 // ListFileTypes returns file types list from specified project.
-func (c *httpAPIClient) ListFileTypes(
+func (c *HttpAPIClient) ListFileTypes(
 	projectID string,
 ) ([]smfile.FileType, error) {
 	var result struct {
