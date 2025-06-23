@@ -42,16 +42,16 @@ type APIClient interface {
 	UploadFile(projectID string, request smfile.FileUploadRequest) (*smfile.FileUploadResult, error)
 }
 
-// Client represents Smartling API client.
-type httpAPIClient struct {
+// HttpAPIClient represents http Smartling API client.
+type HttpAPIClient struct {
 	Client *smclient.Client
 }
 
-// NewAPIClient returns new Smartling API client with specified authentication
+// NewHttpAPIClient returns new http Smartling API client with specified authentication
 // data.
-func NewAPIClient(userID, tokenSecret string) APIClient {
+func NewHttpAPIClient(userID, tokenSecret string) *HttpAPIClient {
 	smclient := smclient.NewClient(userID, tokenSecret)
-	return &httpAPIClient{
+	return &HttpAPIClient{
 		Client: smclient,
 	}
 }

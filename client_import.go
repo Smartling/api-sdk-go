@@ -37,7 +37,7 @@ type FileImportResult struct {
 }
 
 // Import imports specified file as translation.
-func (c *httpAPIClient) Import(
+func (c *HttpAPIClient) Import(
 	projectID string,
 	localeID string,
 	request smfile.ImportRequest,

@@ -24,7 +24,7 @@ import (
 	"time"
 )
 
-func (c *httpAPIClient) LogRequest(
+func (c *HttpAPIClient) LogRequest(
 	method string,
 	url string,
 	body []byte,
