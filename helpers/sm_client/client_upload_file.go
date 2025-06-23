@@ -1,43 +1,21 @@
-// Copyright (c) 2020 Smartling
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of
-// this software and associated documentation files (the "Software"), to deal in
-// the Software without restriction, including without limitation the rights to
-// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-// the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 package smclient
 
 import (
 	"fmt"
 
-	"github.com/Smartling/api-sdk-go/helpers/sm_file"
+	smfile "github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
 	endpointUploadFile = "/files-api/v2/projects/%s/file"
 )
 
-type FileUploadResult struct {
-	Overwritten bool
-	StringCount int
-	WordCount   int
-}
-
 // UploadFile uploads file
-func (c *Client) UploadFile(url string, request smfile.FileUploadRequest) (*FileUploadResult, error) {
-	var result FileUploadResult
+func (c *Client) UploadFile(
+	projectID string,
+	request smfile.FileUploadRequest,
+) (*smfile.FileUploadResult, error) {
+	var result smfile.FileUploadResult
 
 	form, err := request.GetForm()
 	if err != nil {
@@ -50,7 +28,7 @@ func (c *Client) UploadFile(url string, request smfile.FileUploadRequest) (*File
 	}
 
 	_, _, err = c.Post(
-		url,
+		fmt.Sprintf(endpointUploadFile, projectID),
 		form.Bytes(),
 		&result,
 		ContentTypeOption(form.GetContentType()),

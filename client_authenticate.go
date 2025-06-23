@@ -19,50 +19,8 @@
 
 package smartling
 
-import (
-	"fmt"
-
-	"github.com/Smartling/api-sdk-go/helpers/sm_client"
-	"github.com/Smartling/api-sdk-go/helpers/sm_file"
-)
-
-const (
-	endpointImport = "/files-api/v2/projects/%s/locales/%s/file/import"
-)
-
-type FileImportResult struct {
-	WordCount               int
-	StringCount             int
-	TranslationImportErrors []string
-}
-
-// Import imports specified file as translation.
-func (c *httpAPIClient) Import(
-	projectID string,
-	localeID string,
-	request smfile.ImportRequest,
-) (*FileImportResult, error) {
-	var result FileImportResult
-
-	form, err := request.GetForm()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create import form: %w", err)
-	}
-
-	err = form.Close()
-	if err != nil {
-		return nil, fmt.Errorf("failed to close import file form: %w", err)
-	}
-
-	_, _, err = c.Client.Post(
-		fmt.Sprintf(endpointImport, projectID, localeID),
-		form.Bytes(),
-		&result,
-		smclient.ContentTypeOption(form.GetContentType()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to import: %w", err)
-	}
-
-	return &result, nil
+// Authenticate checks that access and refresh tokens are valid and refreshes
+// them if needed.
+func (c *httpAPIClient) Authenticate() error {
+	return c.Client.Authenticate()
 }

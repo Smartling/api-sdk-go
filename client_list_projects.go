@@ -83,7 +83,7 @@ type Locale struct {
 
 // ListProjects returns projects in specified account matching specified
 // request.
-func (c *Client) ListProjects(
+func (c *httpAPIClient) ListProjects(
 	accountID string,
 	request smfile.ProjectsListRequest,
 ) (*ProjectsList, error) {
@@ -102,7 +102,7 @@ func (c *Client) ListProjects(
 }
 
 // GetProjectDetails returns project details for specified project.
-func (c *Client) GetProjectDetails(
+func (c *httpAPIClient) GetProjectDetails(
 	projectID string,
 ) (*ProjectDetails, error) {
 	var details ProjectDetails

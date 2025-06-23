@@ -30,7 +30,7 @@ const (
 )
 
 // GetFileStatus returns file status.
-func (c *Client) GetFileStatus(
+func (c *httpAPIClient) GetFileStatus(
 	projectID string,
 	fileURI string,
 ) (*smfile.FileStatus, error) {
