@@ -49,11 +49,17 @@ func (c *Client) Authenticate() error {
 
 	c.Credentials.AccessToken = nil
 
-	url := endpointAuthenticateRefresh
-	params := map[string]string{
-		"refreshToken": c.Credentials.RefreshToken.Value,
-	}
-	if !c.Credentials.RefreshToken.IsSafe() {
+	var (
+		url    string
+		params map[string]string
+	)
+
+	if c.Credentials.RefreshToken.IsSafe() {
+		url = endpointAuthenticateRefresh
+		params = map[string]string{
+			"refreshToken": c.Credentials.RefreshToken.Value,
+		}
+	} else {
 		url = endpointAuthenticate
 		params = map[string]string{
 			"userIdentifier": c.Credentials.UserID,
