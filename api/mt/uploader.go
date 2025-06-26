@@ -9,7 +9,7 @@ import (
 
 // Uploader defines uploader behaviour
 type Uploader interface {
-	UploadFile(accountUID AccountUID) (UploadFileResponse, error)
+	UploadFile(accountUID AccountUID, projectID string, req smfile.FileUploadRequest) (UploadFileResponse, error)
 }
 
 // NewUploader returns new Uploader implementation
@@ -22,21 +22,38 @@ type httpUploader struct {
 }
 
 // UploadFile uploads file
-func (u httpUploader) UploadFile(accountUID AccountUID) (UploadFileResponse, error) {
+func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req smfile.FileUploadRequest) (UploadFileResponse, error) {
 	filePath := buildUploadFilePath(accountUID)
 	path := joinPath(mtBasePath, filePath)
-	_, err := u.base.client.UploadFile(
-		path,
-		smfile.FileUploadRequest{},
-	)
+	_, err := u.base.client.UploadFile(path, req)
+
+	var resonse uploadFileResponse
+	form, err := req.GetForm()
 	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to download original file: %w", err)
+		return UploadFileResponse{}, fmt.Errorf("failed to create file upload form: %w", err)
 	}
 
-	// TODO set file id
+	err = form.Close()
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to close upload file form: %w", err)
+	}
+
+	_, _, err = u.base.client.Post(
+		fmt.Sprintf(smclient.DefaultBaseURL+path, projectID),
+		form.Bytes(),
+		&resonse,
+		smclient.ContentTypeOption(form.GetContentType()),
+	)
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf(
+			"failed to upload original file: %w",
+			err,
+		)
+	}
+
 	return UploadFileResponse{
 		Code:    successResponseCode,
-		FileUID: "",
+		FileUID: resonse.Response.Data.FileUID,
 	}, nil
 }
 
