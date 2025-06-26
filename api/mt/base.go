@@ -7,8 +7,12 @@ import (
 )
 
 const (
-	SuccessResponseCode      = "SUCCESS"
-	CompletedTranslatedState = "COMPLETED"
+	SuccessResponseCode       = "SUCCESS"
+	QueuedTranslatedState     = "QUEUED"
+	ProcessingTranslatedState = "PROCESSING"
+	FailedTranslatedState     = "FAILED"
+	CanceledTranslatedState   = "CANCELED"
+	CompletedTranslatedState  = "COMPLETED"
 )
 
 var (
