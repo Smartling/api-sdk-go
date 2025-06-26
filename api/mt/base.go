@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	SuccessResponseCode = "SUCCESS"
+	SuccessResponseCode      = "SUCCESS"
+	CompletedTranslatedState = "COMPLETED"
 )
 
 var (
