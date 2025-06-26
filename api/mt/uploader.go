@@ -52,8 +52,8 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 	}
 
 	return UploadFileResponse{
-		Code:    successResponseCode,
-		FileUID: response.Response.Data.FileUID,
+		Code:    response.Response.Code,
+		FileUID: FileUID(response.Response.Data.FileUID),
 	}, nil
 }
 

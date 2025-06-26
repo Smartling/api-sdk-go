@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	successResponseCode = "success"
+	SuccessResponseCode = "SUCCESS"
 )
 
 var (
