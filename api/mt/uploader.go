@@ -27,7 +27,7 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 	path := joinPath(mtBasePath, filePath)
 	_, err := u.base.client.UploadFile(path, req)
 
-	var resonse uploadFileResponse
+	var response uploadFileResponse
 	form, err := req.GetForm()
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to create file upload form: %w", err)
@@ -41,7 +41,7 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 	_, _, err = u.base.client.Post(
 		fmt.Sprintf(smclient.DefaultBaseURL+path, projectID),
 		form.Bytes(),
-		&resonse,
+		&response,
 		smclient.ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
@@ -53,7 +53,7 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 
 	return UploadFileResponse{
 		Code:    successResponseCode,
-		FileUID: resonse.Response.Data.FileUID,
+		FileUID: response.Response.Data.FileUID,
 	}, nil
 }
 
