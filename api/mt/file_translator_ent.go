@@ -3,7 +3,7 @@ package mt
 // StartResponse defines start translation response
 type StartResponse struct {
 	Code  string
-	MtUID string
+	MtUID MtUID
 }
 
 // StartResponse defines start translation response
@@ -19,7 +19,7 @@ type startResponse struct {
 func toStartResponse(r startResponse) StartResponse {
 	return StartResponse{
 		Code:  r.Response.Code,
-		MtUID: r.Response.Data.MtUID,
+		MtUID: MtUID(r.Response.Data.MtUID),
 	}
 }
 
