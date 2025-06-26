@@ -3,7 +3,7 @@ package mt
 // UploadFileResponse defines upload file response
 type UploadFileResponse struct {
 	Code    string
-	FileUID string
+	FileUID FileUID
 }
 
 type uploadFileResponse struct {
@@ -18,6 +18,6 @@ type uploadFileResponse struct {
 func toUploadFileResponse(r uploadFileResponse) UploadFileResponse {
 	return UploadFileResponse{
 		Code:    r.Response.Code,
-		FileUID: r.Response.Data.FileUID,
+		FileUID: FileUID(r.Response.Data.FileUID),
 	}
 }
