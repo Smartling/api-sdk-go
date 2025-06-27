@@ -32,6 +32,11 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 		return UploadFileResponse{}, fmt.Errorf("failed to create file upload form: %w", err)
 	}
 
+	_, err = form.Writer.CreateFormFile("request", `{"fileType":"PLAIN_TEXT"}`)
+	if err != nil {
+		return UploadFileResponse{}, err
+	}
+
 	err = form.Close()
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to close upload file form: %w", err)
