@@ -38,8 +38,9 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 		return UploadFileResponse{}, fmt.Errorf("failed to close upload file form: %w", err)
 	}
 
+	url := fmt.Sprintf(smclient.DefaultBaseURL+path, projectID)
 	_, _, err = u.base.client.Post(
-		fmt.Sprintf(smclient.DefaultBaseURL+path, projectID),
+		url,
 		form.Bytes(),
 		&response,
 		smclient.ContentTypeOption(form.GetContentType()),
