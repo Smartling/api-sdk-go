@@ -27,14 +27,9 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 	path := joinPath(mtBasePath, filePath)
 
 	var response uploadFileResponse
-	form, err := req.GetForm()
+	form, err := req.GetMTForm()
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to create file upload form: %w", err)
-	}
-
-	err = form.Writer.WriteField("request", `{"fileType":"PLAIN_TEXT"}`)
-	if err != nil {
-		return UploadFileResponse{}, err
 	}
 
 	err = form.Close()
