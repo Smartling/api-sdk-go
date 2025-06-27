@@ -112,8 +112,8 @@ func (r *FileUploadRequest) GetMTForm() (*sm_form.Form, error) {
 	}
 
 	filePartHeader := make(textproto.MIMEHeader)
-	filePartHeader.Set("Content-Disposition", `form-data; name="file"; filename="test.txt"`)
-	filePartHeader.Set("Content-Type", "text/plain")
+	filePartHeader.Set("Content-Disposition", `form-data; name="request"`)
+	filePartHeader.Set("Content-Type", "application/json")
 
 	writer, err := form.Writer.CreatePart(filePartHeader)
 	if err != nil {
