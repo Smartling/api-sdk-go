@@ -1,7 +1,13 @@
 package mt
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"net/textproto"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -27,27 +33,80 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 	path := joinPath(mtBasePath, filePath)
 
 	var response uploadFileResponse
-	form, err := req.GetMTForm()
-	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to create file upload form: %w", err)
+
+	fileType := "PLAIN_TEXT"
+	filename := "01.txt"
+
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+
+	for _, locale := range req.LocalesToAuthorize {
+		if locale == "" {
+			continue
+		}
+		err := writer.WriteField("localeIdsToAuthorize[]", locale)
+		if err != nil {
+			return UploadFileResponse{}, err
+		}
 	}
 
-	err = form.Close()
-	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to close upload file form: %w", err)
+	for directive, value := range req.Smartling.Directives {
+		err := writer.WriteField("smartling."+directive, value)
+		if err != nil {
+			return UploadFileResponse{}, err
+		}
 	}
 
-	_, _, err = u.base.client.Post(
-		path,
-		form.Bytes(),
-		&response,
-		smclient.ContentTypeOption(form.GetContentType()),
-	)
+	requestHeader := make(textproto.MIMEHeader)
+	requestHeader.Set("Content-Disposition", `form-data; name="request"`)
+	requestHeader.Set("Content-Type", "application/json")
+
+	requestPart, err := writer.CreatePart(requestHeader)
 	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf(
-			"failed to upload original file: %w",
-			err,
-		)
+		return UploadFileResponse{}, fmt.Errorf("failed to create request part: %v", err)
+	}
+	jsonRequest := fmt.Sprintf(`{"fileType":"%s"}`, fileType)
+	_, err = requestPart.Write([]byte(jsonRequest))
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to write request: %v", err)
+	}
+
+	fileHeader := make(textproto.MIMEHeader)
+	fileHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s"`, filename))
+	fileHeader.Set("Content-Type", "text/plain")
+
+	filePart, err := writer.CreatePart(fileHeader)
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to create file part: %v", err)
+	}
+	_, err = filePart.Write(req.File)
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to write: %v", err)
+	}
+
+	writer.Close()
+
+	url := u.base.client.BaseURL + path
+	request, err := http.NewRequest("POST", url, &buf)
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	request.Header.Set("Authorization", "Bearer "+u.base.client.Credentials.AccessToken.Value)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+
+	//client := &http.Client{}
+	resp, err := u.base.client.HTTP.Do(request)
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf("request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to unmarshal: %v", err)
 	}
 
 	return UploadFileResponse{

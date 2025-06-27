@@ -21,7 +21,6 @@ package smfile
 
 import (
 	"github.com/Smartling/api-sdk-go/helpers/sm_form"
-	"net/textproto"
 )
 
 type FileUploadRequest struct {
@@ -100,83 +99,6 @@ func (r *FileUploadRequest) GetForm() (*sm_form.Form, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	return form, nil
-}
-
-func (r *FileUploadRequest) GetMTForm() (*sm_form.Form, error) {
-	form, err := r.FileURIRequest.GetForm()
-	if err != nil {
-		return nil, err
-	}
-
-	filePartHeader := make(textproto.MIMEHeader)
-	filePartHeader.Set("Content-Disposition", `form-data; name="request"`)
-	filePartHeader.Set("Content-Type", "PLAIN_TEXT")
-
-	writer, err := form.Writer.CreatePart(filePartHeader)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = writer.Write(r.File)
-	if err != nil {
-		return nil, err
-	}
-
-	err = form.Writer.WriteField("fileType", string(r.FileType))
-	if err != nil {
-		return nil, err
-	}
-
-	if r.Authorize {
-		err = form.Writer.WriteField("authorize", "true")
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for _, locale := range r.LocalesToAuthorize {
-		if locale == "" {
-			continue
-		}
-		err = form.Writer.WriteField("localeIdsToAuthorize[]", locale)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if r.Smartling.Namespace != "" {
-		err = form.Writer.WriteField(
-			"smartling.namespace",
-			r.Smartling.Namespace,
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if r.Smartling.FileCharset != "" {
-		err = form.Writer.WriteField(
-			"smartling.file_charset",
-			r.Smartling.FileCharset,
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for directive, value := range r.Smartling.Directives {
-		err = form.Writer.WriteField("smartling."+directive, value)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	err = form.Writer.WriteField("request", `{"fileType":"PLAIN_TEXT"}`)
-	if err != nil {
-		return nil, err
 	}
 
 	return form, nil
