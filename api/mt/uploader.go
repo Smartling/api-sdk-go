@@ -25,7 +25,6 @@ type httpUploader struct {
 func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req smfile.FileUploadRequest) (UploadFileResponse, error) {
 	filePath := buildUploadFilePath(accountUID)
 	path := joinPath(mtBasePath, filePath)
-	_, err := u.base.client.UploadFile(path, req)
 
 	var response uploadFileResponse
 	form, err := req.GetForm()
@@ -38,9 +37,8 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 		return UploadFileResponse{}, fmt.Errorf("failed to close upload file form: %w", err)
 	}
 
-	url := fmt.Sprintf(path, projectID)
 	_, _, err = u.base.client.Post(
-		url,
+		path,
 		form.Bytes(),
 		&response,
 		smclient.ContentTypeOption(form.GetContentType()),
