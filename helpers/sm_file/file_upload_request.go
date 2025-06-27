@@ -138,6 +138,9 @@ func (r *FileUploadRequest) GetMTForm() (*sm_form.Form, error) {
 	}
 
 	for _, locale := range r.LocalesToAuthorize {
+		if locale == "" {
+			continue
+		}
 		err = form.Writer.WriteField("localeIdsToAuthorize[]", locale)
 		if err != nil {
 			return nil, err
