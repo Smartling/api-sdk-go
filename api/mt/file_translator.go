@@ -27,7 +27,7 @@ func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID) (Start
 	var res StartResponse
 	startPath := buildStartPath(accountUID, fileUID)
 	path := joinPath(mtBasePath, startPath)
-	_, _, err := h.base.client.Post(path, nil, &res, contentTypeApplicationJson)
+	_, _, err := h.base.client.PostJSON(path, nil, &res, contentTypeApplicationJson)
 	if err != nil {
 		return StartResponse{}, fmt.Errorf("failed to start file translation: %w", err)
 	}

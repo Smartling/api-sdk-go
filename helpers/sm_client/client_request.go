@@ -37,15 +37,25 @@ const (
 	validationErrorCode = "validation_error"
 )
 
-// Post performs POST request to the Smartling API. You probably do not want
+// PostJSON performs POST request to the Smartling API. You probably do not want
 // to use it.
-func (c *Client) Post(
+func (c *Client) PostJSON(
 	url string,
 	payload []byte,
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
 	return c.requestJSON("POST", url, nil, payload, result, options...)
+}
+
+// Post performs POST request to the Smartling API. You probably do not want
+// to use it.
+func (c *Client) Post(
+	url string,
+	payload []byte,
+	options ...interface{},
+) (*http.Response, error) {
+	return c.request("POST", url, nil, payload, options...)
 }
 
 // GetJSON performs GET request to the smartling API and tries to decode answer

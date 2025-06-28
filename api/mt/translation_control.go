@@ -28,7 +28,7 @@ func (h httpTranslationControl) CancelTranslation(accountUID AccountUID, fileUID
 	var res CancelTranslationResponse
 	startPath := buildCancelTranslationPath(accountUID, fileUID, mtUID)
 	path := joinPath(mtBasePath, startPath)
-	_, _, err := h.base.client.Post(path, nil, &res, contentTypeApplicationJson)
+	_, _, err := h.base.client.PostJSON(path, nil, &res, contentTypeApplicationJson)
 	if err != nil {
 		return CancelTranslationResponse{}, fmt.Errorf("failed to cancel file translation: %w", err)
 	}
@@ -40,7 +40,7 @@ func (h httpTranslationControl) DetectFileLanguage(accountUID AccountUID, fileUI
 	var res DetectFileLanguageResponse
 	startPath := buildDetectFileLanguagePath(accountUID, fileUID)
 	path := joinPath(mtBasePath, startPath)
-	_, _, err := h.base.client.Post(path, nil, &res, contentTypeApplicationJson)
+	_, _, err := h.base.client.PostJSON(path, nil, &res, contentTypeApplicationJson)
 	if err != nil {
 		return DetectFileLanguageResponse{}, fmt.Errorf("failed to detect file language: %w", err)
 	}
