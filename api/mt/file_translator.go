@@ -1,6 +1,7 @@
 package mt
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
@@ -9,7 +10,7 @@ import (
 
 // FileTranslator defines file behaviour
 type FileTranslator interface {
-	Start(accountUID AccountUID, fileUID FileUID) (StartResponse, error)
+	Start(accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error)
 	Progress(accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error)
 }
 
@@ -22,16 +23,33 @@ type httpFileTranslator struct {
 	base *base
 }
 
+type StartParams struct {
+	SourceLocaleIO  string   `json:"sourceLocaleId"`
+	TargetLocaleIDs []string `json:"targetLocaleIds"`
+}
+
 // Start starts file translation
-func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID) (StartResponse, error) {
-	var res StartResponse
+func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error) {
 	startPath := buildStartPath(accountUID, fileUID)
 	path := joinPath(mtBasePath, startPath)
-	_, _, err := h.base.client.PostJSON(path, nil, &res, contentTypeApplicationJson)
+
+	payload, err := json.Marshal(p)
+	if err != nil {
+		return StartResponse{}, err
+	}
+
+	resp, err := h.base.client.Post(path, payload)
 	if err != nil {
 		return StartResponse{}, fmt.Errorf("failed to start file translation: %w", err)
 	}
-	return res, nil
+	var response startResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return StartResponse{}, fmt.Errorf("failed to parse response: %w", err)
+	}
+	return StartResponse{
+		Code:  response.Response.Code,
+		MtUID: MtUID(response.Response.Data.MtUID),
+	}, nil
 }
 
 // Progress return progress of file translation
