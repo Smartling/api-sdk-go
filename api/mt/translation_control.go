@@ -61,14 +61,6 @@ func (h httpTranslationControl) DetectFileLanguage(accountUID AccountUID, fileUI
 
 	body, _ := io.ReadAll(response.Body)
 
-	type detectFileLanguageResponse struct {
-		Response struct {
-			Code string `json:"code"`
-			Data struct {
-				LanguageDetectionUID string `json:"languageDetectionUid"`
-			} `json:"data"`
-		} `json:"response"`
-	}
 	var res detectFileLanguageResponse
 	err = json.Unmarshal(body, &res)
 	if err != nil {
@@ -100,19 +92,6 @@ func (h httpTranslationControl) DetectionProgress(accountUID AccountUID, fileUID
 
 	body, _ := io.ReadAll(response.Body)
 
-	type detectionProgressResponse struct {
-		Response struct {
-			Code string `json:"code"`
-			Data struct {
-				State                   string  `json:"state"`
-				Error                   *string `json:"error"`
-				DetectedSourceLanguages []struct {
-					LanguageID      string `json:"languageId"`
-					DefaultLocaleID string `json:"defaultLocaleId"`
-				} `json:"detectedSourceLanguages"`
-			} `json:"data"`
-		} `json:"response"`
-	}
 	var res detectionProgressResponse
 	err = json.Unmarshal(body, &res)
 	if err != nil {
