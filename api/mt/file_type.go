@@ -28,3 +28,31 @@ const (
 	JSON
 	XLSX_TEMPLATE
 )
+
+// FileTypeByExt contains map with FileType by file extension
+var FileTypeByExt = map[string]FileType{
+	".docx":          DOCX,
+	".docm":          DOCM,
+	".rtf":           RTF,
+	".pptx":          PPTX,
+	".xlsx":          XLSX,
+	".idml":          IDML,
+	".resx":          RESX,
+	".txt":           PLAIN_TEXT,
+	".xml":           XML,
+	".html":          HTML,
+	".htm":           HTML,
+	".pres":          PRES,
+	".srt":           SRT,
+	".md":            MARKDOWN,
+	".markdown":      MARKDOWN,
+	".dita":          DITA,
+	".vtt":           VTT,
+	".zip":           FLARE,
+	".svg":           SVG,
+	".xlf":           XLIFF2,
+	".xliff":         XLIFF2,
+	".csv":           CSV,
+	".json":          JSON,
+	".xlsx_template": XLSX_TEMPLATE,
+}
