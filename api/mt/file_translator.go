@@ -38,17 +38,28 @@ func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p Star
 		return StartResponse{}, err
 	}
 
+	//url := h.base.client.BaseURL + path
+	//resp, err := h.base.client.Post(url, contentTypeApplicationJson, bytes.NewBuffer(payload))
+
 	resp, err := h.base.client.Post(path, payload)
 	if err != nil {
 		return StartResponse{}, fmt.Errorf("failed to start file translation: %w", err)
 	}
-	var response startResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	type startResponse struct {
+		Response struct {
+			Code string `json:"code"`
+			Data struct {
+				MtUID string `json:"mtUid"`
+			} `json:"data"`
+		} `json:"response"`
+	}
+	var res startResponse
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return StartResponse{}, fmt.Errorf("failed to parse response: %w", err)
 	}
 	return StartResponse{
-		Code:  response.Response.Code,
-		MtUID: MtUID(response.Response.Data.MtUID),
+		Code:  res.Response.Code,
+		MtUID: MtUID(res.Response.Data.MtUID),
 	}, nil
 }
 

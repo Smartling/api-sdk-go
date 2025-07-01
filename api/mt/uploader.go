@@ -15,7 +15,7 @@ import (
 
 // Uploader defines uploader behaviour
 type Uploader interface {
-	UploadFile(accountUID AccountUID, projectID string, req smfile.FileUploadRequest) (UploadFileResponse, error)
+	UploadFile(accountUID AccountUID, filename string, req smfile.FileUploadRequest) (UploadFileResponse, error)
 }
 
 // NewUploader returns new Uploader implementation
@@ -28,14 +28,9 @@ type httpUploader struct {
 }
 
 // UploadFile uploads file
-func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req smfile.FileUploadRequest) (UploadFileResponse, error) {
+func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req smfile.FileUploadRequest) (UploadFileResponse, error) {
 	filePath := buildUploadFilePath(accountUID)
 	path := joinPath(mtBasePath, filePath)
-
-	var response uploadFileResponse
-
-	fileType := "PLAIN_TEXT"
-	filename := "01.txt"
 
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
@@ -65,7 +60,7 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to create request part: %v", err)
 	}
-	jsonRequest := fmt.Sprintf(`{"fileType":"%s"}`, fileType)
+	jsonRequest := fmt.Sprintf(`{"fileType":"%s"}`, req.FileType)
 	_, err = requestPart.Write([]byte(jsonRequest))
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to write request: %v", err)
@@ -95,7 +90,6 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 	request.Header.Set("Authorization", "Bearer "+u.base.client.Credentials.AccessToken.Value)
 	request.Header.Set("Content-Type", writer.FormDataContentType())
 
-	//client := &http.Client{}
 	resp, err := u.base.client.HTTP.Do(request)
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("request failed: %v", err)
@@ -104,6 +98,7 @@ func (u httpUploader) UploadFile(accountUID AccountUID, projectID string, req sm
 
 	body, _ := io.ReadAll(resp.Body)
 
+	var response uploadFileResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to unmarshal: %v", err)
