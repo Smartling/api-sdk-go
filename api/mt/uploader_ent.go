@@ -6,6 +6,14 @@ type UploadFileResponse struct {
 	FileUID FileUID
 }
 
+// UploadFileRequest defines upload file request
+type UploadFileRequest struct {
+	File               []byte
+	FileType           FileType
+	LocalesToAuthorize []string
+	Directives         map[string]string
+}
+
 type uploadFileResponse struct {
 	Response struct {
 		Code string `json:"code"`
