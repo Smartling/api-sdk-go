@@ -10,12 +10,11 @@ import (
 	"net/textproto"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
-	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 // Uploader defines uploader behaviour
 type Uploader interface {
-	UploadFile(accountUID AccountUID, filename string, req smfile.FileUploadRequest) (UploadFileResponse, error)
+	UploadFile(accountUID AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error)
 }
 
 // NewUploader returns new Uploader implementation
@@ -28,7 +27,7 @@ type httpUploader struct {
 }
 
 // UploadFile uploads file
-func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req smfile.FileUploadRequest) (UploadFileResponse, error) {
+func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error) {
 	filePath := buildUploadFilePath(accountUID)
 	path := joinPath(mtBasePath, filePath)
 
@@ -45,7 +44,7 @@ func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req smf
 		}
 	}
 
-	for directive, value := range req.Smartling.Directives {
+	for directive, value := range req.Directives {
 		err := writer.WriteField("smartling."+directive, value)
 		if err != nil {
 			return UploadFileResponse{}, err
