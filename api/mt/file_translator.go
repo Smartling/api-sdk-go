@@ -54,6 +54,7 @@ func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p Star
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return StartResponse{}, fmt.Errorf("failed to parse response: %w", err)
 	}
+	h.base.client.Logger.Debugf("response body: %v\n", res)
 	return StartResponse{
 		Code:  res.Response.Code,
 		MtUID: MtUID(res.Response.Data.MtUID),
@@ -73,6 +74,7 @@ func (h httpFileTranslator) Progress(accountUID AccountUID, fileUID FileUID, mtU
 	if err != nil {
 		return ProgressResponse{}, fmt.Errorf("failed to get progress file translation: %w", err)
 	}
+	h.base.client.Logger.Debugf("response body: %v\n", res)
 	return res, nil
 }
 

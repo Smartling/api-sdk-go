@@ -34,6 +34,7 @@ func (h httpTranslationControl) CancelTranslation(accountUID AccountUID, fileUID
 	if err != nil {
 		return CancelTranslationResponse{}, fmt.Errorf("failed to cancel file translation: %w", err)
 	}
+	h.base.client.Logger.Debugf("response body: %v\n", res)
 	return res, nil
 }
 
@@ -57,9 +58,17 @@ func (h httpTranslationControl) DetectFileLanguage(accountUID AccountUID, fileUI
 	if response.StatusCode != http.StatusAccepted {
 		return DetectFileLanguageResponse{}, fmt.Errorf("expected 202 status got: %d", response.StatusCode)
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			h.base.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 
-	body, _ := io.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return DetectFileLanguageResponse{}, fmt.Errorf("failed to read response body: %v", err)
+	}
+	h.base.client.Logger.Debugf("response body: %s\n", body)
 
 	var res detectFileLanguageResponse
 	err = json.Unmarshal(body, &res)
@@ -78,6 +87,7 @@ func (h httpTranslationControl) DetectionProgress(accountUID AccountUID, fileUID
 	path := joinPath(mtBasePath, progressPath)
 
 	url := h.base.client.BaseURL + path
+	h.base.client.Logger.Debugf("<- %s %s\n", "GET", url)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return DetectionProgressResponse{}, fmt.Errorf("failed to create request: %v", err)
@@ -88,9 +98,17 @@ func (h httpTranslationControl) DetectionProgress(accountUID AccountUID, fileUID
 	if err != nil {
 		return DetectionProgressResponse{}, fmt.Errorf("failed to detect file language: %w", err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			h.base.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 
-	body, _ := io.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return DetectionProgressResponse{}, fmt.Errorf("failed to read response body: %v", err)
+	}
+	h.base.client.Logger.Debugf("response body: %s\n", body)
 
 	var res detectionProgressResponse
 	err = json.Unmarshal(body, &res)

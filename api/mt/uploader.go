@@ -81,6 +81,10 @@ func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req Upl
 	writer.Close()
 
 	url := u.base.client.BaseURL + path
+	u.base.client.Logger.Debugf(
+		"<- %s %s [payload %d bytes]\n",
+		"POST", url, buf.Len(),
+	)
 	request, err := http.NewRequest("POST", url, &buf)
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to create request: %v", err)
@@ -88,14 +92,21 @@ func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req Upl
 
 	request.Header.Set("Authorization", "Bearer "+u.base.client.Credentials.AccessToken.Value)
 	request.Header.Set("Content-Type", writer.FormDataContentType())
-
 	resp, err := u.base.client.HTTP.Do(request)
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("request failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			u.base.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to read response body: %v", err)
+	}
+	u.base.client.Logger.Debugf("response body: %s\n", body)
 
 	var response uploadFileResponse
 	err = json.Unmarshal(body, &response)
