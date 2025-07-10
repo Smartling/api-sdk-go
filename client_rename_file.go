@@ -50,7 +50,7 @@ func (c *HttpAPIClient) RenameFile(
 		return fmt.Errorf("unable to close file rename form: %w", err)
 	}
 
-	_, _, err = c.Client.Post(
+	_, _, err = c.Client.PostJSON(
 		fmt.Sprintf(endpointFileRename, projectID),
 		form.Bytes(),
 		nil,

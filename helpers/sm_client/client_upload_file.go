@@ -27,7 +27,7 @@ func (c *Client) UploadFile(
 		return nil, fmt.Errorf("failed to close upload file form: %w", err)
 	}
 
-	_, _, err = c.Post(
+	_, _, err = c.PostJSON(
 		fmt.Sprintf(endpointUploadFile, projectID),
 		form.Bytes(),
 		&result,

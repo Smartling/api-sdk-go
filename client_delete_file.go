@@ -49,7 +49,7 @@ func (c *HttpAPIClient) DeleteFile(
 		return fmt.Errorf("failed to close file delete form: %w", err)
 	}
 
-	_, _, err = c.Client.Post(
+	_, _, err = c.Client.PostJSON(
 		fmt.Sprintf(endpointFileDelete, projectID),
 		form.Bytes(),
 		nil,

@@ -83,7 +83,7 @@ func (c *Client) Authenticate() error {
 		RefreshExpiresIn time.Duration
 	}
 
-	_, _, err = c.Post(url, payload, &response, WithoutAuthentication)
+	_, _, err = c.PostJSON(url, payload, &response, WithoutAuthentication)
 	if err != nil {
 		if _, ok := err.(smartling.NotAuthorizedError); ok {
 			return err

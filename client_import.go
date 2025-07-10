@@ -54,7 +54,7 @@ func (c *HttpAPIClient) Import(
 		return nil, fmt.Errorf("failed to close import file form: %w", err)
 	}
 
-	_, _, err = c.Client.Post(
+	_, _, err = c.Client.PostJSON(
 		fmt.Sprintf(endpointImport, projectID, localeID),
 		form.Bytes(),
 		&result,

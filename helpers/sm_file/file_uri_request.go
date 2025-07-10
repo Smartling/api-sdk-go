@@ -21,6 +21,7 @@ package smfile
 
 import (
 	"bytes"
+	"github.com/Smartling/api-sdk-go/helpers/sm_form"
 	"mime/multipart"
 	"net/url"
 
