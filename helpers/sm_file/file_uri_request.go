@@ -24,6 +24,8 @@ import (
 	"github.com/Smartling/api-sdk-go/helpers/sm_form"
 	"mime/multipart"
 	"net/url"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_form"
 )
 
 // FileURIRequest represents fileUri query parameter, commonly used in API.
