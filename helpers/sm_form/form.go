@@ -17,21 +17,26 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package sm_form
 
-// Credentials represents user credentials used to authenticate
-// user in the Smartling API.
-type Credentials struct {
-	// UserID is a unique user ID for accessing Smartling API.
-	UserID string
+import (
+	"bytes"
+	"mime/multipart"
+)
 
-	// Secret is a secret token for accessing Smartling API.
-	Secret string
+type Form struct {
+	Writer *multipart.Writer
+	Body   *bytes.Buffer
+}
 
-	// AccessToken is a access token, which is obtained by UserID/Secret pair.
-	AccessToken *Token
+func (form *Form) Close() error {
+	return form.Writer.Close()
+}
 
-	// RefreshToken is a token for refreshing access token. It has longer
-	// lifespan.
-	RefreshToken *Token
+func (form *Form) GetContentType() string {
+	return form.Writer.FormDataContentType()
+}
+
+func (form *Form) Bytes() []byte {
+	return form.Body.Bytes()
 }

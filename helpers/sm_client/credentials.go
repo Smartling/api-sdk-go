@@ -17,19 +17,21 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
-type FileStatusTranslation struct {
-	LocaleID string
+// Credentials represents user credentials used to authenticate
+// user in the Smartling API.
+type Credentials struct {
+	// UserID is a unique user ID for accessing Smartling API.
+	UserID string
 
-	AuthorizedStringCount int
-	AuthorizedWordCount   int
-	CompletedStringCount  int
-	CompletedWordCount    int
-	ExcludedStringCount   int
-	ExcludedWordCount     int
-}
+	// Secret is a secret token for accessing Smartling API.
+	Secret string
 
-func (fst FileStatusTranslation) AwaitingAuthorizationStringCount(totalStringCount int) int {
-	return totalStringCount - fst.AuthorizedStringCount - fst.ExcludedStringCount - fst.CompletedStringCount
+	// AccessToken is a access token, which is obtained by UserID/Secret pair.
+	AccessToken *Token
+
+	// RefreshToken is a token for refreshing access token. It has longer
+	// lifespan.
+	RefreshToken *Token
 }

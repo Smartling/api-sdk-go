@@ -38,12 +38,14 @@ import (
 	"log"
 	"time"
 
-	smartling "github.com/Smartling/api-sdk-go"
+	sdk "github.com/Smartling/api-sdk-go"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
+	"github.com/Smartling/api-sdk-go/helpers/utc"
 )
 
 func ExampleListFiles() {
 	log.Printf("Initializing smartling client and performing autorization")
-	client := smartling.NewClient(UserID, TokenSecret)
+	client := sdk.NewClient(UserID, TokenSecret)
 
 	log.Printf("Listing project (%v) files", ProjectID)
 
@@ -52,11 +54,11 @@ func ExampleListFiles() {
 	log.Println("\tLastUploadedBefore: one month back")
 	log.Println("\tFileTypes: json and Java properties files")
 
-	listRequest := smartling.FilesListRequest{
-		Cursor:             smartling.LimitOffsetRequest{Limit: 10},
+	listRequest := smfile.FilesListRequest{
+		Cursor:             smfile.LimitOffsetRequest{Limit: 10},
 		URIMask:            "master",
-		LastUploadedBefore: smartling.UTC{time.Now().AddDate(0, -1, 0)},
-		FileTypes:          []smartling.FileType{smartling.FileTypeJSON, smartling.FileTypeJavaProperties},
+		LastUploadedBefore: utc.UTC{time.Now().AddDate(0, -1, 0)},
+		FileTypes:          []smfile.FileType{smfile.FileTypeJSON, smfile.FileTypeJavaProperties},
 	}
 
 	files, err := client.ListFiles(ProjectID, listRequest)

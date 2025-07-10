@@ -17,59 +17,19 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smerror
 
-import (
-	"fmt"
-	"time"
-)
+import "fmt"
 
-const tokenExpirationSafetyDuration = 30 * time.Second
-
-// Token represents authentication token, either access or refresh.
-type Token struct {
-	// Value is a string representation of token.
-	Value string
-
-	// ExpirationTime is a expiration time for token when it becomes invalid.
-	ExpirationTime time.Time
+type JSONError struct {
+	Cause    error
+	Response []byte
 }
 
-// IsValid returns true if token still can be used.
-func (token *Token) IsValid() bool {
-	if token == nil {
-		return false
-	}
-
-	if token.Value == "" {
-		return false
-	}
-
-	return time.Now().Before(token.ExpirationTime)
-}
-
-// IsSafe returns true if token still can be used and it's expiration time is
-// in safe bounds.
-func (token *Token) IsSafe() bool {
-	if !token.IsValid() {
-		return false
-	}
-
-	return time.Now().Add(tokenExpirationSafetyDuration).Before(
-		token.ExpirationTime,
-	)
-}
-
-// String returns token representation for logging purposes only.
-func (token *Token) String() string {
-	if token == nil {
-		return "[no token]"
-	}
-
+func (err JSONError) Error() string {
 	return fmt.Sprintf(
-		"[token=%s...{%d bytes} ttl %.2fs]",
-		token.Value[:7],
-		len(token.Value),
-		time.Until(token.ExpirationTime).Seconds(),
+		"unable to parse reply as JSON: %s\n%s",
+		err.Cause,
+		err.Response,
 	)
 }

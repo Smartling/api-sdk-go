@@ -17,35 +17,31 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
 import (
-	"fmt"
-	"strings"
+	"github.com/Smartling/api-sdk-go/helpers/sm_form"
+	"github.com/Smartling/api-sdk-go/helpers/utc"
 )
 
-type ValidationError struct {
-	Errors []struct {
-		Key     string
-		Message string
-	}
+type FileLastModifiedRequest struct {
+	FileURIRequest
+
+	LastModifiedAfter utc.UTC
 }
 
-func (err ValidationError) Error() string {
-	var messages []string
+func (request *FileLastModifiedRequest) GetForm() (*sm_form.Form, error) {
+	form, err := request.FileURIRequest.GetForm()
 
-	for _, err := range err.Errors {
-		message := "\n- "
-
-		if err.Key != "" {
-			message += fmt.Sprintf("%s: ", err.Key)
-		}
-
-		message += err.Message
-
-		messages = append(messages, message)
+	if err != nil {
+		return nil, err
 	}
 
-	return "Smartling replies with validation error" +
-		strings.Join(messages, "")
+	err = form.Writer.WriteField("lastModifiedAfter", request.LastModifiedAfter.String())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return form, nil
 }

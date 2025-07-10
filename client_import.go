@@ -21,6 +21,9 @@ package smartling
 
 import (
 	"fmt"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
@@ -34,10 +37,10 @@ type FileImportResult struct {
 }
 
 // Import imports specified file as translation.
-func (client *Client) Import(
+func (c *HttpAPIClient) Import(
 	projectID string,
 	localeID string,
-	request ImportRequest,
+	request smfile.ImportRequest,
 ) (*FileImportResult, error) {
 	var result FileImportResult
 
@@ -51,11 +54,11 @@ func (client *Client) Import(
 		return nil, fmt.Errorf("failed to close import file form: %w", err)
 	}
 
-	_, _, err = client.Post(
+	_, _, err = c.Client.Post(
 		fmt.Sprintf(endpointImport, projectID, localeID),
 		form.Bytes(),
 		&result,
-		ContentTypeOption(form.GetContentType()),
+		smclient.ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to import: %w", err)

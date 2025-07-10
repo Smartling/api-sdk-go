@@ -21,6 +21,9 @@ package smartling
 
 import (
 	"fmt"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_error"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
@@ -80,13 +83,13 @@ type Locale struct {
 
 // ListProjects returns projects in specified account matching specified
 // request.
-func (client *Client) ListProjects(
+func (c *HttpAPIClient) ListProjects(
 	accountID string,
-	request ProjectsListRequest,
+	request smfile.ProjectsListRequest,
 ) (*ProjectsList, error) {
 	var list ProjectsList
 
-	_, _, err := client.GetJSON(
+	_, _, err := c.Client.GetJSON(
 		fmt.Sprintf(endpointProjectsList, accountID),
 		request.GetQuery(),
 		&list,
@@ -99,18 +102,18 @@ func (client *Client) ListProjects(
 }
 
 // GetProjectDetails returns project details for specified project.
-func (client *Client) GetProjectDetails(
+func (c *HttpAPIClient) GetProjectDetails(
 	projectID string,
 ) (*ProjectDetails, error) {
 	var details ProjectDetails
 
-	_, _, err := client.GetJSON(
+	_, _, err := c.Client.GetJSON(
 		fmt.Sprintf(endpointProjectDetails, projectID),
 		nil,
 		&details,
 	)
 	if err != nil {
-		if _, ok := err.(NotFoundError); ok {
+		if _, ok := err.(smerror.NotFoundError); ok {
 			return nil, err
 		}
 

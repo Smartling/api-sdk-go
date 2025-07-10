@@ -17,42 +17,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
-import (
-	"fmt"
-)
-
-// FileStatus describes file translation status obtained by GetFileStatus
-// method.
-type FileStatus struct {
-	File
-
-	TotalStringCount int
-	TotalWordCount   int
-	TotalCount       int
-
-	Items []FileStatusTranslation
-}
-
-func (fs FileStatus) GetFileStatusTranslation(locale string) (*FileStatusTranslation, error) {
-	for i := range fs.Items {
-		if fs.Items[i].LocaleID == locale {
-			return &fs.Items[i], nil
-		}
-	}
-
-	return nil, fmt.Errorf(
-		"failed to get file status translation for locale: %s", locale,
-	)
-}
-
-func (fs FileStatus) AwaitingAuthorizationStringCount() int {
-	c := 0
-
-	for i := range fs.Items {
-		c += fs.Items[i].AwaitingAuthorizationStringCount(fs.TotalStringCount)
-	}
-
-	return c
-}
+// ContentTypeOption specifies content type for making request to API.
+type ContentTypeOption string

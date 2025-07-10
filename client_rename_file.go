@@ -21,6 +21,9 @@ package smartling
 
 import (
 	"fmt"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 const (
@@ -28,12 +31,12 @@ const (
 )
 
 // RenameFile renames file to new URI.
-func (client *Client) RenameFile(
+func (c *HttpAPIClient) RenameFile(
 	projectID string,
 	oldURI string,
 	newURI string,
 ) error {
-	request := RenameFileRequest{}
+	request := smfile.RenameFileRequest{}
 	request.FileURI = oldURI
 	request.NewFileURI = newURI
 
@@ -47,11 +50,11 @@ func (client *Client) RenameFile(
 		return fmt.Errorf("unable to close file rename form: %w", err)
 	}
 
-	_, _, err = client.Post(
+	_, _, err = c.Client.Post(
 		fmt.Sprintf(endpointFileRename, projectID),
 		form.Bytes(),
 		nil,
-		ContentTypeOption(form.GetContentType()),
+		smclient.ContentTypeOption(form.GetContentType()),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to rename file: %w", err)

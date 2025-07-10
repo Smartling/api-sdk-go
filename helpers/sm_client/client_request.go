@@ -17,7 +17,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
 import (
 	"bytes"
@@ -28,6 +28,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
 
 const (
@@ -37,34 +39,34 @@ const (
 
 // Post performs POST request to the Smartling API. You probably do not want
 // to use it.
-func (client *Client) Post(
+func (c *Client) Post(
 	url string,
 	payload []byte,
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	return client.requestJSON("POST", url, nil, payload, result, options...)
+	return c.requestJSON("POST", url, nil, payload, result, options...)
 }
 
 // GetJSON performs GET request to the smartling API and tries to decode answer
 // as JSON.
-func (client *Client) GetJSON(
+func (c *Client) GetJSON(
 	url string,
 	params url.Values,
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	return client.requestJSON("GET", url, params, nil, result, options...)
+	return c.requestJSON("GET", url, params, nil, result, options...)
 }
 
 // Get performs raw GET request to the Smartling API. You probably do not want
 // to use it.
-func (client *Client) Get(
+func (c *Client) Get(
 	url string,
 	params url.Values,
 	options ...interface{},
 ) (io.ReadCloser, int, error) {
-	reply, err := client.request("GET", url, params, nil, options...)
+	reply, err := c.request("GET", url, params, nil, options...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -72,7 +74,7 @@ func (client *Client) Get(
 	return reply.Body, reply.StatusCode, nil
 }
 
-func (client *Client) request(
+func (c *Client) request(
 	method string,
 	url string,
 	params url.Values,
@@ -95,28 +97,28 @@ func (client *Client) request(
 	}
 
 	if authenticate {
-		err := client.Authenticate()
+		err := c.Authenticate()
 		if err != nil {
 			return nil, fmt.Errorf("unable to authenticate: %w", err)
 		}
 	}
 
-	token := client.Credentials.AccessToken
+	token := c.Credentials.AccessToken
 
 	if payload != nil {
 		if contentType == "application/json" {
-			client.Logger.Debugf(
+			c.Logger.Debugf(
 				"<- %s %s %s [payload %d bytes]\n%s",
 				method, url, token, len(payload), payload,
 			)
 		} else {
-			client.Logger.Debugf(
+			c.Logger.Debugf(
 				"<- %s %s %s [payload %d bytes form data]",
 				method, url, token, len(payload),
 			)
 		}
 	} else {
-		client.Logger.Debugf(
+		c.Logger.Debugf(
 			"<- %s %s %s", method, url, token,
 		)
 	}
@@ -129,7 +131,7 @@ func (client *Client) request(
 
 	request, err := http.NewRequest(
 		method,
-		client.BaseURL+url,
+		c.BaseURL+url,
 		bytes.NewBuffer(payload),
 	)
 	if err != nil {
@@ -137,13 +139,13 @@ func (client *Client) request(
 	}
 
 	request.Header.Set("Content-Type", contentType)
-	request.Header.Set("User-Agent", client.UserAgent)
+	request.Header.Set("User-Agent", c.UserAgent)
 
-	if client.Credentials.AccessToken != nil {
+	if c.Credentials.AccessToken != nil {
 		request.Header.Set("Authorization", "Bearer "+token.Value)
 	}
 
-	reply, err := client.HTTP.Do(request)
+	reply, err := c.HTTP.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("unable to perform HTTP request: %w", err)
 	}
@@ -153,7 +155,7 @@ func (client *Client) request(
 		requestID = "<none>"
 	}
 
-	client.Logger.Debugf(
+	c.Logger.Debugf(
 		"-> %s [took %.2fs] [X-SL-RequestID %s]",
 		reply.Status,
 		time.Since(startTime).Seconds(),
@@ -163,7 +165,7 @@ func (client *Client) request(
 	return reply, nil
 }
 
-func (client *Client) requestJSON(
+func (c *Client) requestJSON(
 	method string,
 	url string,
 	params url.Values,
@@ -171,14 +173,14 @@ func (client *Client) requestJSON(
 	result interface{},
 	options ...interface{},
 ) (json.RawMessage, int, error) {
-	reply, err := client.request(method, url, params, payload, options...)
+	reply, err := c.request(method, url, params, payload, options...)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	defer func() {
 		if err := reply.Body.Close(); err != nil {
-			client.Logger.Debugf("error on closing body: %s", err)
+			c.Logger.Debugf("error on closing body: %s", err)
 		}
 	}()
 
@@ -186,7 +188,7 @@ func (client *Client) requestJSON(
 
 	body, err := io.ReadAll(reply.Body)
 	if err != nil {
-		return nil, code, APIError{
+		return nil, code, smerror.APIError{
 			Cause:   err,
 			URL:     url,
 			Payload: payload,
@@ -209,7 +211,7 @@ func (client *Client) requestJSON(
 	if strings.HasPrefix(contentType, "application/json") {
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			return nil, code, JSONError{
+			return nil, code, smerror.JSONError{
 				Cause:    err,
 				Response: body,
 			}
@@ -218,7 +220,7 @@ func (client *Client) requestJSON(
 		// we don't care about error here, it's only for logging
 		message, _ := json.MarshalIndent(response, "", "  ")
 
-		client.Logger.Debugf(
+		c.Logger.Debugf(
 			"=> JSON [status=%s]\n%s",
 			response.Response.Code,
 			message,
@@ -231,18 +233,18 @@ func (client *Client) requestJSON(
 			// ok
 
 		case 401:
-			return nil, code, NotAuthorizedError{}
+			return nil, code, smerror.NotAuthorizedError{}
 
 		case 404:
-			return nil, code, NotFoundError{}
+			return nil, code, smerror.NotFoundError{}
 
 		default:
 			if strings.ToLower(response.Response.Code) == validationErrorCode {
-				return nil, code, ValidationError{
+				return nil, code, smerror.ValidationError{
 					Errors: response.Response.Errors,
 				}
 			}
-			return nil, code, APIError{
+			return nil, code, smerror.APIError{
 				Cause: fmt.Errorf(
 					"API call returned unexpected HTTP code: %d", code,
 				),
@@ -256,7 +258,7 @@ func (client *Client) requestJSON(
 	}
 
 	if strings.ToLower(response.Response.Code) != successResponseCode {
-		return nil, 0, APIError{
+		return nil, 0, smerror.APIError{
 			Cause: fmt.Errorf(
 				`unexpected response status (expected "%s"): %#v`,
 				successResponseCode,
@@ -276,7 +278,7 @@ func (client *Client) requestJSON(
 
 	err = json.Unmarshal(response.Response.Data, result)
 	if err != nil {
-		return nil, 0, APIError{
+		return nil, 0, smerror.APIError{
 			Cause:    fmt.Errorf("unable to decode API response data: %w", err),
 			URL:      url,
 			Params:   params,

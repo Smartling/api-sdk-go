@@ -25,7 +25,8 @@ import (
 	"log"
 	"time"
 
-	smartling "github.com/Smartling/api-sdk-go"
+	sdk "github.com/Smartling/api-sdk-go"
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 func ExampleBasic() {
@@ -36,14 +37,14 @@ func ExampleBasic() {
 		projectId   = ""
 	)
 
-	log.Printf("Initializing smartling client and performing autorization")
+	log.Printf("Initializing sdk client and performing autorization")
 
-	client := smartling.NewClient(userID, TokenSecret)
+	client := sdk.NewClient(userID, TokenSecret)
 
 	log.Printf("Listing projects:")
 
-	listRequest := smartling.ProjectsListRequest{
-		Cursor:            smartling.LimitOffsetRequest{Limit: 10},
+	listRequest := smfile.ProjectsListRequest{
+		Cursor:            smfile.LimitOffsetRequest{Limit: 10},
 		ProjectNameFilter: "VCS",
 		IncludeArchived:   false,
 	}

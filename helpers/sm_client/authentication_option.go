@@ -17,38 +17,16 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smclient
 
-import "strings"
+// AuthenticationOption specifies should request to API use authentication or
+// not. See Post and Get methods.
+type AuthenticationOption bool
 
-var (
-	extensions = map[string]FileType{
-		"yml":         FileTypeYAML,
-		"yaml":        FileTypeYAML,
-		"html":        FileTypeHTML,
-		"htm":         FileTypeHTML,
-		"xlf":         FileTypeXLIFF,
-		"xliff":       FileTypeXLIFF,
-		"json":        FileTypeJSON,
-		"docx":        FileTypeDOCX,
-		"pptx":        FileTypePPTX,
-		"xlsx":        FileTypeXLSX,
-		"txt":         FileTypePlaintext,
-		"ts":          FileTypeQt,
-		"idml":        FileTypeIDML,
-		"resx":        FileTypeResx,
-		"resw":        FileTypeResx,
-		"csv":         FileTypeCSV,
-		"stringsdict": FileTypeStringsdict,
-		"strings":     FileTypeIOS,
-		"po":          FileTypeGettext,
-		"pot":         FileTypeGettext,
-		"xml":         FileTypeXML,
-		"properties":  FileTypeJavaProperties,
-		"":            FileTypeUnknown,
-	}
+const (
+	// WithAuthentication equal to use of authentication in request.
+	WithAuthentication = AuthenticationOption(true)
+
+	// WithoutAuthentication equal to not use of authentication in request.
+	WithoutAuthentication = AuthenticationOption(false)
 )
-
-func GetFileTypeByExtension(ext string) FileType {
-	return extensions[strings.TrimPrefix(ext, ".")]
-}

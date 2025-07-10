@@ -17,12 +17,14 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
 import (
 	"bytes"
 	"mime/multipart"
 	"net/url"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_form"
 )
 
 // FileURIRequest represents fileUri query parameter, commonly used in API.
@@ -39,7 +41,7 @@ func (r FileURIRequest) GetQuery() url.Values {
 	return query
 }
 
-func (r *FileURIRequest) GetForm() (*Form, error) {
+func (r *FileURIRequest) GetForm() (*sm_form.Form, error) {
 	var (
 		body   = &bytes.Buffer{}
 		writer = multipart.NewWriter(body)
@@ -50,7 +52,7 @@ func (r *FileURIRequest) GetForm() (*Form, error) {
 		return nil, err
 	}
 
-	return &Form{
+	return &sm_form.Form{
 		Writer: writer,
 		Body:   body,
 	}, nil

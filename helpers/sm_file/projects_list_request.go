@@ -17,59 +17,34 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
-type TranslationState string
-
-const (
-	TranslationStatePublished       TranslationState = "PUBLISHED"
-	TranslationStatePostTranslation TranslationState = "POST_TRANSLATION"
+import (
+	"fmt"
+	"net/url"
 )
 
-type ImportRequest struct {
-	FileURIRequest
+// ProjectsListRequest is a request used in GetProjectsList method.
+type ProjectsListRequest struct {
+	// Cursor specifies limit/offset pagination pair.
+	Cursor LimitOffsetRequest
 
-	File             []byte
-	FileType         FileType
-	TranslationState TranslationState
-	Overwrite        bool
+	// ProjectNameFilter specifies filter for project name.
+	ProjectNameFilter string
+
+	// IncludeArchived specifies archived items be included or not.
+	IncludeArchived bool
 }
 
-func (request *ImportRequest) GetForm() (*Form, error) {
-	form, err := request.FileURIRequest.GetForm()
-	if err != nil {
-		return nil, err
+// GetQuery returns URL-encoded representation of current request.
+func (request ProjectsListRequest) GetQuery() url.Values {
+	query := request.Cursor.GetQuery()
+
+	if len(request.ProjectNameFilter) > 0 {
+		query.Set("projectNameFilter", request.ProjectNameFilter)
 	}
 
-	file, err := form.Writer.CreateFormFile("file", request.FileURI)
-	if err != nil {
-		return nil, err
-	}
+	query.Set("includeArchived", fmt.Sprint(request.IncludeArchived))
 
-	_, err = file.Write(request.File)
-	if err != nil {
-		return nil, err
-	}
-
-	err = form.Writer.WriteField("fileType", string(request.FileType))
-	if err != nil {
-		return nil, err
-	}
-
-	err = form.Writer.WriteField(
-		"translationState",
-		string(request.TranslationState),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if request.Overwrite {
-		err = form.Writer.WriteField("overwrite", "true")
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return form, nil
+	return query
 }

@@ -17,10 +17,35 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smerror
 
-type NotFoundError struct{}
+import (
+	"fmt"
+	"strings"
+)
 
-func (err NotFoundError) Error() string {
-	return "requested entity is not found"
+type ValidationError struct {
+	Errors []struct {
+		Key     string
+		Message string
+	}
+}
+
+func (err ValidationError) Error() string {
+	var messages []string
+
+	for _, err := range err.Errors {
+		message := "\n- "
+
+		if err.Key != "" {
+			message += fmt.Sprintf("%s: ", err.Key)
+		}
+
+		message += err.Message
+
+		messages = append(messages, message)
+	}
+
+	return "Smartling replies with validation error" +
+		strings.Join(messages, "")
 }

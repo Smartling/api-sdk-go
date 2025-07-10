@@ -19,22 +19,26 @@
 
 package smartling
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
+)
 
 const (
 	endpointFileStatus = "/files-api/v2/projects/%s/file/status"
 )
 
 // GetFileStatus returns file status.
-func (client *Client) GetFileStatus(
+func (c *HttpAPIClient) GetFileStatus(
 	projectID string,
 	fileURI string,
-) (*FileStatus, error) {
-	var status FileStatus
+) (*smfile.FileStatus, error) {
+	var status smfile.FileStatus
 
-	_, _, err := client.GetJSON(
+	_, _, err := c.Client.GetJSON(
 		fmt.Sprintf(endpointFileStatus, projectID),
-		FileURIRequest{fileURI}.GetQuery(),
+		smfile.FileURIRequest{fileURI}.GetQuery(),
 		&status,
 	)
 	if err != nil {

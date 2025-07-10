@@ -17,26 +17,17 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
 import (
-	"bytes"
-	"mime/multipart"
+	"github.com/Smartling/api-sdk-go/helpers/utc"
 )
 
-type Form struct {
-	Writer *multipart.Writer
-	Body   *bytes.Buffer
+type FileLastModifiedLocales struct {
+	Items []FileLastModified
 }
 
-func (form *Form) Close() error {
-	return form.Writer.Close()
-}
-
-func (form *Form) GetContentType() string {
-	return form.Writer.FormDataContentType()
-}
-
-func (form *Form) Bytes() []byte {
-	return form.Body.Bytes()
+type FileLastModified struct {
+	LocaleID     string
+	LastModified utc.UTC
 }

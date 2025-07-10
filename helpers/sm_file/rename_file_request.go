@@ -17,30 +17,29 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package smartling
+package smfile
 
-// FileType represents file type format used in Smartling API.
-type FileType string
-
-// Android and next are types that are supported by Smartling API.
-const (
-	FileTypeUnknown        FileType = ""
-	FileTypeAndroid        FileType = "android"
-	FileTypeIOS            FileType = "ios"
-	FileTypeGettext        FileType = "gettext"
-	FileTypeHTML           FileType = "html"
-	FileTypeJavaProperties FileType = "javaProperties"
-	FileTypeYAML           FileType = "yaml"
-	FileTypeXLIFF          FileType = "xliff"
-	FileTypeXML            FileType = "xml"
-	FileTypeJSON           FileType = "json"
-	FileTypeDOCX           FileType = "docx"
-	FileTypePPTX           FileType = "pptx"
-	FileTypeXLSX           FileType = "xlsx"
-	FileTypeIDML           FileType = "idml"
-	FileTypeQt             FileType = "qt"
-	FileTypeResx           FileType = "resx"
-	FileTypePlaintext      FileType = "plaintext"
-	FileTypeCSV            FileType = "csv"
-	FileTypeStringsdict    FileType = "stringsdict"
+import (
+	"github.com/Smartling/api-sdk-go/helpers/sm_form"
 )
+
+// RenameFileRequest represents fileUri query parameter, commonly used in API.
+type RenameFileRequest struct {
+	FileURIRequest
+
+	NewFileURI string
+}
+
+func (request *RenameFileRequest) GetForm() (*sm_form.Form, error) {
+	form, err := request.FileURIRequest.GetForm()
+	if err != nil {
+		return nil, err
+	}
+
+	err = form.Writer.WriteField("newFileUri", request.NewFileURI)
+	if err != nil {
+		return nil, err
+	}
+
+	return form, nil
+}

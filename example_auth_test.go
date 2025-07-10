@@ -34,13 +34,13 @@ import (
 	"fmt"
 	"log"
 
-	smartling "github.com/Smartling/api-sdk-go"
+	sdk "github.com/Smartling/api-sdk-go"
 )
 
 func ExampleAuth() {
 	log.Printf("Initializing smartling client and performing autorization")
 
-	client := smartling.NewClient(UserID, TokenSecret)
+	client := sdk.NewClient(UserID, TokenSecret)
 
 	err := client.Authenticate()
 	if err != nil {
