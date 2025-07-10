@@ -223,8 +223,6 @@ func (client *Client) requestJSON(
 
 	if code != 200 {
 		switch code {
-		case 200:
-			fallthrough
 		case 202:
 			// ok
 
@@ -239,18 +237,16 @@ func (client *Client) requestJSON(
 				return nil, code, ValidationError{
 					Errors: response.Response.Errors,
 				}
-			} else {
-				return nil, code, APIError{
-					Cause: fmt.Errorf(
-						"API call returned unexpected HTTP code: %d", code,
-					),
-					URL:      url,
-					Params:   params,
-					Payload:  payload,
-					Response: body,
-					Headers:  &reply.Header,
-				}
-
+			}
+			return nil, code, APIError{
+				Cause: fmt.Errorf(
+					"API call returned unexpected HTTP code: %d", code,
+				),
+				URL:      url,
+				Params:   params,
+				Payload:  payload,
+				Response: body,
+				Headers:  &reply.Header,
 			}
 		}
 	}
