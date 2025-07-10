@@ -31,21 +31,21 @@ type FileURIRequest struct {
 }
 
 // GetQuery returns URL value representation for file URI.
-func (request FileURIRequest) GetQuery() url.Values {
+func (r FileURIRequest) GetQuery() url.Values {
 	query := url.Values{}
 
-	query.Set("fileUri", request.FileURI)
+	query.Set("fileUri", r.FileURI)
 
 	return query
 }
 
-func (request *FileURIRequest) GetForm() (*Form, error) {
+func (r *FileURIRequest) GetForm() (*Form, error) {
 	var (
 		body   = &bytes.Buffer{}
 		writer = multipart.NewWriter(body)
 	)
 
-	err := writer.WriteField("fileUri", request.FileURI)
+	err := writer.WriteField("fileUri", r.FileURI)
 	if err != nil {
 		return nil, err
 	}

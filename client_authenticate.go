@@ -45,19 +45,13 @@ func (client *Client) Authenticate() error {
 		return fmt.Errorf("token secret in the client is not set")
 	}
 
-	var (
-		url    string
-		params map[string]string
-	)
-
 	client.Credentials.AccessToken = nil
 
-	if client.Credentials.RefreshToken.IsSafe() {
-		url = endpointAuthenticateRefresh
-		params = map[string]string{
-			"refreshToken": client.Credentials.RefreshToken.Value,
-		}
-	} else {
+	url := endpointAuthenticateRefresh
+	params := map[string]string{
+		"refreshToken": client.Credentials.RefreshToken.Value,
+	}
+	if !client.Credentials.RefreshToken.IsSafe() {
 		url = endpointAuthenticate
 		params = map[string]string{
 			"userIdentifier": client.Credentials.UserID,

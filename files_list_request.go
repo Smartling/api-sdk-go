@@ -47,22 +47,22 @@ type FilesListRequest struct {
 }
 
 // GetQuery returns URL values representation of files list request.
-func (request *FilesListRequest) GetQuery() url.Values {
-	query := request.Cursor.GetQuery()
-	if len(request.URIMask) > 0 {
-		query.Set("uriMask", request.URIMask)
+func (r *FilesListRequest) GetQuery() url.Values {
+	query := r.Cursor.GetQuery()
+	if len(r.URIMask) > 0 {
+		query.Set("uriMask", r.URIMask)
 	}
 
-	for _, fileType := range request.FileTypes {
+	for _, fileType := range r.FileTypes {
 		query.Add("fileTypes[]", fmt.Sprint(fileType))
 	}
 
-	if !request.LastUploadedAfter.IsZero() {
-		query.Set("lastUploadedAfter", request.LastUploadedAfter.String())
+	if !r.LastUploadedAfter.IsZero() {
+		query.Set("lastUploadedAfter", r.LastUploadedAfter.String())
 	}
 
-	if !request.LastUploadedBefore.IsZero() {
-		query.Set("lastUploadedBefore", request.LastUploadedBefore.String())
+	if !r.LastUploadedBefore.IsZero() {
+		query.Set("lastUploadedBefore", r.LastUploadedBefore.String())
 	}
 
 	return query

@@ -60,7 +60,7 @@ func (utc *UTC) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// String returns string reprenation of UTC.
+// String returns string representation of UTC.
 func (utc UTC) String() string {
 	return utc.Format(utcFormat)
 }
