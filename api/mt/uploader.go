@@ -78,7 +78,9 @@ func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req Upl
 		return UploadFileResponse{}, fmt.Errorf("failed to write: %v", err)
 	}
 
-	writer.Close()
+	if err := writer.Close(); err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to close writer: %v", err)
+	}
 
 	url := u.base.client.BaseURL + path
 	u.base.client.Logger.Debugf(
