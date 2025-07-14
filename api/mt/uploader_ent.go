@@ -1,6 +1,6 @@
 package mt
 
-import "github.com/Smartling/api-sdk-go/helpers/file_type"
+import "github.com/Smartling/api-sdk-go/helpers/file"
 
 // UploadFileResponse defines upload file response
 type UploadFileResponse struct {
@@ -11,7 +11,7 @@ type UploadFileResponse struct {
 // UploadFileRequest defines upload file request
 type UploadFileRequest struct {
 	File               []byte
-	FileType           file.FileType
+	FileType           file.Type
 	LocalesToAuthorize []string
 	Directives         map[string]string
 }

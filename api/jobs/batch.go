@@ -45,7 +45,7 @@ func (h httpBatch) Create(ctx context.Context, projectID string, payload CreateB
 	if err != nil {
 		return CreateBatchResponse{}, fmt.Errorf("failed to create batch: %w", err)
 	}
-	if respCode != 200 {
+	if respCode != http.StatusOK {
 		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, response: %s", respCode, resp)
 	}
 	return toCreateBatchResponse(response), nil
@@ -62,7 +62,7 @@ func (h httpBatch) CreateJob(ctx context.Context, projectID string, payload Crea
 	if err != nil {
 		return CreateJobResponse{}, fmt.Errorf("failed to create job: %w", err)
 	}
-	if respCode != 200 {
+	if respCode != http.StatusOK {
 		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, response: %s", respCode, resp)
 	}
 	return toCreateJobResponse(response), nil
@@ -119,7 +119,7 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 		"<- %s %s [payload %d bytes]\n",
 		"POST", url, buf.Len(),
 	)
-	request, err := http.NewRequest("POST", url, &buf)
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &buf)
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to create request: %v", err)
 	}
