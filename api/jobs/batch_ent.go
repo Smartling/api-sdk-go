@@ -7,6 +7,11 @@ import (
 	"github.com/Smartling/api-sdk-go/helpers/file"
 )
 
+const (
+	ReuseExistingMode = "REUSE_EXISTING"
+	OrdinalSalt       = "ORDINAL"
+)
+
 type CreateBatchPayload struct {
 	Authorize         bool             `json:"authorize"`
 	TranslationJobUID string           `json:"translationJobUid"`
