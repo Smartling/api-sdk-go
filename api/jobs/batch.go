@@ -40,6 +40,7 @@ func (h httpBatch) Create(ctx context.Context, projectID string, payload CreateB
 	if err != nil {
 		return CreateBatchResponse{}, fmt.Errorf("unable to marshal: %w", err)
 	}
+
 	var response createBatchResponse
 	resp, respCode, err := h.client.PostJSON(url, payloadB, &response)
 	if err != nil {
@@ -86,16 +87,6 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 	requestHeader := make(textproto.MIMEHeader)
 	requestHeader.Set("Content-Disposition", `form-data; name="request"`)
 	requestHeader.Set("Content-Type", "application/json")
-
-	requestPart, err := writer.CreatePart(requestHeader)
-	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to create request part: %v", err)
-	}
-	jsonRequest := fmt.Sprintf(`{"fileType":"%s"}`, payload.FileType)
-	_, err = requestPart.Write([]byte(jsonRequest))
-	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to write request: %v", err)
-	}
 
 	fileHeader := make(textproto.MIMEHeader)
 	fileHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s"`, payload.Filename))
