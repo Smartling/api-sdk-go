@@ -8,24 +8,33 @@ import (
 )
 
 const (
+	// ReuseExistingMode is reuse existing mode
 	ReuseExistingMode = "REUSE_EXISTING"
-	OrdinalSalt       = "ORDINAL"
+	// RandomAlphanumericSalt is random alphanumeric salt
+	RandomAlphanumericSalt = "RANDOM_ALPHANUMERIC"
 )
 
+// CreateBatchPayload defines create batch payload
 type CreateBatchPayload struct {
 	Authorize         bool             `json:"authorize"`
 	TranslationJobUID string           `json:"translationJobUid"`
 	FileUris          []string         `json:"fileUris"`
 	LocaleWorkflows   []LocaleWorkflow `json:"localeWorkflows"`
 }
+
+// LocaleWorkflow defines locale workflow
 type LocaleWorkflow struct {
 	TargetLocaleID string `json:"targetLocaleId"`
 	WorkflowUid    string `json:"workflowUid"`
 }
+
+// CreateBatchResponse defines create batch response
 type CreateBatchResponse struct {
 	Code     string
 	BatchUID string
 }
+
+// createBatchResponse defines create batch response as defined in API
 type createBatchResponse struct {
 	Response struct {
 		Code string `json:"code"`
@@ -50,9 +59,12 @@ type UploadFilePayload struct {
 	LocalesToAuthorize []string
 }
 
+// UploadFileResponse defines upload file response
 type UploadFileResponse struct {
 	Code string
 }
+
+// uploadFileResponse defines upload file response as defined in API
 type uploadFileResponse struct {
 	Response struct {
 		Code string      `json:"code"`
@@ -66,6 +78,7 @@ func toUploadFileResponse(r uploadFileResponse) UploadFileResponse {
 	}
 }
 
+// GetStatusResponse defines get status response
 type GetStatusResponse struct {
 	Code              string
 	Authorized        bool
@@ -77,6 +90,7 @@ type GetStatusResponse struct {
 	Files             []GetStatusFile
 }
 
+// GetStatusFile defines file status in get status response
 type GetStatusFile struct {
 	Errors        string
 	FileUri       string
@@ -85,11 +99,13 @@ type GetStatusFile struct {
 	UpdatedDate   time.Time
 }
 
+// TargetLocale defines target locale in get status response
 type TargetLocale struct {
 	LocaleID     string
 	StringsAdded int
 }
 
+// getStatusResponse defines get status response as defined in API
 type getStatusResponse struct {
 	Response struct {
 		Code string `json:"code"`
@@ -143,6 +159,7 @@ func toGetStatusResponse(r getStatusResponse) GetStatusResponse {
 	return res
 }
 
+// CreateJobPayload defines create job payload
 type CreateJobPayload struct {
 	NameTemplate    string   `json:"nameTemplate"`
 	Description     string   `json:"description"`
@@ -152,6 +169,7 @@ type CreateJobPayload struct {
 	TimeZoneName    string   `json:"timeZoneName"`
 }
 
+// CreateJobResponse defines create job response
 type CreateJobResponse struct {
 	Code              string
 	TranslationJobUID string

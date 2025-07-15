@@ -15,6 +15,7 @@ import (
 
 const jobBasePath = "/job-batches-api/v2/projects/"
 
+// Batch defines the batch behaviour
 type Batch interface {
 	Create(ctx context.Context, projectID string, payload CreateBatchPayload) (CreateBatchResponse, error)
 	CreateJob(ctx context.Context, projectID string, payload CreateJobPayload) (CreateJobResponse, error)
@@ -22,10 +23,12 @@ type Batch interface {
 	GetStatus(ctx context.Context, projectID, batchUID string) (GetStatusResponse, error)
 }
 
+// NewBatch returns new Batch implementation
 func NewBatch(client *smclient.Client) Batch {
 	return newHttpBatch(client)
 }
 
+// httpBatch implements Batch interface using HTTP client
 type httpBatch struct {
 	client *smclient.Client
 }
@@ -34,6 +37,7 @@ func newHttpBatch(client *smclient.Client) httpBatch {
 	return httpBatch{client: client}
 }
 
+// Create creates a new batch in the specified project
 func (h httpBatch) Create(ctx context.Context, projectID string, payload CreateBatchPayload) (CreateBatchResponse, error) {
 	url := jobBasePath + projectID + "/batches"
 	payloadB, err := json.Marshal(payload)
@@ -52,6 +56,7 @@ func (h httpBatch) Create(ctx context.Context, projectID string, payload CreateB
 	return toCreateBatchResponse(response), nil
 }
 
+// CreateJob creates a new job in the specified project
 func (h httpBatch) CreateJob(ctx context.Context, projectID string, payload CreateJobPayload) (CreateJobResponse, error) {
 	url := jobBasePath + projectID + "/jobs"
 	payloadB, err := json.Marshal(payload)
@@ -69,6 +74,7 @@ func (h httpBatch) CreateJob(ctx context.Context, projectID string, payload Crea
 	return toCreateJobResponse(response), nil
 }
 
+// UploadFile uploads a file to the specified batch in the project
 func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, payload UploadFilePayload) (UploadFileResponse, error) {
 	path := jobBasePath + projectID + "/batches/" + batchUID + "/file"
 	var buf bytes.Buffer
@@ -144,6 +150,7 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 	}, nil
 }
 
+// GetStatus retrieves the status of a batch in the specified project
 func (h httpBatch) GetStatus(ctx context.Context, projectID, batchUID string) (GetStatusResponse, error) {
 	url := jobBasePath + projectID + "/batches/" + batchUID
 	var response getStatusResponse
