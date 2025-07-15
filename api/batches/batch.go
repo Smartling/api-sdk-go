@@ -11,6 +11,7 @@ import (
 	"net/textproto"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
+	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
 
 const jobBasePath = "/job-batches-api/v2/projects/"
@@ -46,12 +47,24 @@ func (h httpBatch) Create(ctx context.Context, projectID string, payload CreateB
 	}
 
 	var response createBatchResponse
-	resp, respCode, err := h.client.PostJSON(url, payloadB, &response)
+	resp, err := h.client.Post(url, payloadB, &response)
 	if err != nil {
 		return CreateBatchResponse{}, fmt.Errorf("failed to create batch: %w", err)
 	}
-	if respCode != http.StatusOK {
-		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, response: %s", respCode, resp)
+	if resp.StatusCode != http.StatusOK {
+		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, response: %s", resp.StatusCode, resp)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return CreateBatchResponse{}, smerror.APIError{
+			Cause:   err,
+			URL:     url,
+			Payload: payloadB,
+		}
+	}
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return CreateBatchResponse{}, err
 	}
 	return toCreateBatchResponse(response), nil
 }
@@ -64,12 +77,25 @@ func (h httpBatch) CreateJob(ctx context.Context, projectID string, payload Crea
 		return CreateJobResponse{}, fmt.Errorf("unable to marshal: %w", err)
 	}
 	var response createJobResponse
-	resp, respCode, err := h.client.PostJSON(url, payloadB, &response)
+	resp, err := h.client.Post(url, payloadB, &response)
 	if err != nil {
 		return CreateJobResponse{}, fmt.Errorf("failed to create job: %w", err)
 	}
-	if respCode != http.StatusOK {
-		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, response: %s", respCode, resp)
+	if resp.StatusCode != http.StatusOK {
+		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, response: %s", resp.StatusCode, resp)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return CreateJobResponse{}, smerror.APIError{
+			Cause:   err,
+			URL:     url,
+			Payload: payloadB,
+		}
+	}
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return CreateJobResponse{}, err
 	}
 	return toCreateJobResponse(response), nil
 }
