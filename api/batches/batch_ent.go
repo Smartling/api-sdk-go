@@ -56,6 +56,7 @@ type UploadFilePayload struct {
 	Filename           string
 	File               []byte
 	FileType           file.Type
+	FileUri            string
 	LocalesToAuthorize []string
 }
 
