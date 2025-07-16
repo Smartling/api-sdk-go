@@ -123,6 +123,9 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 	if err := writer.WriteField("fileUri", fileUri); err != nil {
 		return UploadFileResponse{}, err
 	}
+	if err := writer.WriteField("fileType", payload.FileType.String()); err != nil {
+		return UploadFileResponse{}, err
+	}
 
 	requestHeader := make(textproto.MIMEHeader)
 	requestHeader.Set("Content-Disposition", `form-data; name="request"`)
