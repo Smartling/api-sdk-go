@@ -188,12 +188,23 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 func (h httpBatch) GetStatus(ctx context.Context, projectID, batchUID string) (GetStatusResponse, error) {
 	url := jobBasePath + projectID + "/batches/" + batchUID
 	var response getStatusResponse
-	rawMessage, code, err := h.client.GetJSON(url, nil, &response)
+	rawMessage, code, err := h.client.Get(url, nil)
 	if err != nil {
 		return GetStatusResponse{}, err
 	}
 	if code != 200 {
 		return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, rawMessage)
+	}
+	body, err := io.ReadAll(rawMessage)
+	if err != nil {
+		return GetStatusResponse{}, smerror.APIError{
+			Cause:   err,
+			URL:     url,
+			Payload: []byte(fmt.Sprintf("%v", rawMessage)),
+		}
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return GetStatusResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 	return toGetStatusResponse(response), nil
 }
