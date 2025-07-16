@@ -116,6 +116,14 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 		}
 	}
 
+	fileUri := payload.Filename
+	if fileUri == "" {
+		fileUri = payload.FileUri
+	}
+	if err := writer.WriteField("fileUri", fileUri); err != nil {
+		return UploadFileResponse{}, err
+	}
+
 	requestHeader := make(textproto.MIMEHeader)
 	requestHeader.Set("Content-Disposition", `form-data; name="request"`)
 	requestHeader.Set("Content-Type", "application/json")
