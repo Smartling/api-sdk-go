@@ -1,7 +1,6 @@
 package batches
 
 import (
-	"strings"
 	"time"
 
 	"github.com/Smartling/api-sdk-go/helpers/file"
@@ -111,7 +110,7 @@ type getStatusResponse struct {
 	Response struct {
 		Code string `json:"code"`
 		Data struct {
-			Authorized string `json:"authorized"`
+			Authorized bool `json:"authorized"`
 			Files      []struct {
 				Errors        string `json:"errors"`
 				FileUri       string `json:"fileUri"`
@@ -134,7 +133,7 @@ type getStatusResponse struct {
 func toGetStatusResponse(r getStatusResponse) GetStatusResponse {
 	res := GetStatusResponse{
 		Code:              r.Response.Code,
-		Authorized:        strings.ToLower(r.Response.Data.Authorized) == "true",
+		Authorized:        r.Response.Data.Authorized,
 		GeneralErrors:     r.Response.Data.GeneralErrors,
 		ProjectID:         r.Response.Data.ProjectID,
 		Status:            r.Response.Data.Status,
