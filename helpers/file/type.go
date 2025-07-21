@@ -1,12 +1,12 @@
-package mt
+package file
 
-// FileType is type for file types
+// Type is type for file types
 //
-//go:generate stringer -type=FileType
-type FileType int
+//go:generate stringer -type=Type
+type Type int
 
 const (
-	DOCX FileType = iota + 1
+	DOCX Type = iota + 1
 	DOCM
 	RTF
 	PPTX
@@ -29,8 +29,8 @@ const (
 	XLSX_TEMPLATE
 )
 
-// FileTypeByExt contains map with FileType by file extension
-var FileTypeByExt = map[string]FileType{
+// TypeByExt contains map with FileType by file extension
+var TypeByExt = map[string]Type{
 	".docx":          DOCX,
 	".docm":          DOCM,
 	".rtf":           RTF,
