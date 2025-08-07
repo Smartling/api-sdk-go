@@ -126,6 +126,11 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 	if err := writer.WriteField("fileType", payload.FileType.String()); err != nil {
 		return UploadFileResponse{}, err
 	}
+	for directive, value := range payload.Directives {
+		if err := writer.WriteField("smartling."+directive, value); err != nil {
+			return UploadFileResponse{}, err
+		}
+	}
 
 	requestHeader := make(textproto.MIMEHeader)
 	requestHeader.Set("Content-Disposition", `form-data; name="request"`)
