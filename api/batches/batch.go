@@ -130,7 +130,7 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 		if directive == "" {
 			continue
 		}
-		if err := writer.WriteField("smartling."+directive, value); err != nil {
+		if err := writer.WriteField(directive, value); err != nil {
 			return UploadFileResponse{}, err
 		}
 	}
