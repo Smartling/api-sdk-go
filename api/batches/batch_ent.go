@@ -57,6 +57,7 @@ type UploadFilePayload struct {
 	FileType           file.Type
 	FileUri            string
 	LocalesToAuthorize []string
+	Directives         map[string]string
 }
 
 // UploadFileResponse defines upload file response
