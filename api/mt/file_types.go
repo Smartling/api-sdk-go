@@ -1,8 +1,8 @@
-package file
+package mt
 
-// Type is type for file types
+// Type is type for MT file types
 //
-//go:generate stringer -type=Type
+//go:generate stringer -type=Type -output=file_types_string.go
 type Type int
 
 const (
