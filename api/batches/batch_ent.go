@@ -2,8 +2,6 @@ package batches
 
 import (
 	"time"
-
-	"github.com/Smartling/api-sdk-go/helpers/file"
 )
 
 const (
@@ -54,7 +52,7 @@ func toCreateBatchResponse(r createBatchResponse) CreateBatchResponse {
 type UploadFilePayload struct {
 	Filename           string
 	File               []byte
-	FileType           file.Type
+	FileType           Type
 	FileUri            string
 	LocalesToAuthorize []string
 	Directives         map[string]string
