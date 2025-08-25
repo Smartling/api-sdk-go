@@ -24,7 +24,7 @@ type httpFileTranslator struct {
 }
 
 type StartParams struct {
-	SourceLocaleIO  string   `json:"sourceLocaleId"`
+	SourceLocaleID  string   `json:"sourceLocaleId"`
 	TargetLocaleIDs []string `json:"targetLocaleIds"`
 }
 

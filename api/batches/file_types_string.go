@@ -58,7 +58,7 @@ var _Type_index = [...]uint8{0, 15, 18, 29, 36, 43, 55, 59, 64, 68, 72, 75, 79, 
 
 func (i Type) String() string {
 	i -= 1
-	if i < 0 || i >= Type(len(_Type_index)-1) {
+	if i >= Type(len(_Type_index)-1) {
 		return "Type(" + strconv.FormatInt(int64(i+1), 10) + ")"
 	}
 	return _Type_name[_Type_index[i]:_Type_index[i+1]]

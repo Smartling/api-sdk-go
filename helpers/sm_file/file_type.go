@@ -19,6 +19,11 @@
 
 package smfile
 
+import (
+	"fmt"
+	"strings"
+)
+
 // FileType represents file type format used in Smartling API.
 type FileType string
 
@@ -44,3 +49,23 @@ const (
 	FileTypeCSV            FileType = "csv"
 	FileTypeStringsdict    FileType = "stringsdict"
 )
+
+// ParseType parse string to known file type
+func ParseType[T intStringer](first, last T, typ string) (T, bool) {
+	var none T
+	for t := first; t <= last; t++ {
+		if sanitiseType(t.String()) == sanitiseType(typ) {
+			return t, true
+		}
+	}
+	return none, false
+}
+
+func sanitiseType(s string) string {
+	return strings.ToLower(strings.TrimSpace(strings.Replace(s, "_", "", -1)))
+}
+
+type intStringer interface {
+	~uint8
+	fmt.Stringer
+}
