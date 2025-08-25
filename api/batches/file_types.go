@@ -3,7 +3,7 @@ package batches
 // Type is type for Batch file types
 //
 //go:generate stringer -type=Type -output=file_types_string.go
-type Type int
+type Type uint8
 
 const (
 	JAVA_PROPERTIES Type = iota + 1
@@ -48,6 +48,9 @@ const (
 	XCSTRINGS
 	VSDX
 	VSDM
+
+	FirstType = JAVA_PROPERTIES
+	LastType  = VSDM
 )
 
 var TypeByExt = map[string]Type{

@@ -3,7 +3,7 @@ package mt
 // Type is type for MT file types
 //
 //go:generate stringer -type=Type -output=file_types_string.go
-type Type int
+type Type uint8
 
 const (
 	DOCX Type = iota + 1
@@ -27,6 +27,9 @@ const (
 	CSV
 	JSON
 	XLSX_TEMPLATE
+
+	FirstType = DOCX
+	LastType  = XLSX_TEMPLATE
 )
 
 // TypeByExt contains map with FileType by file extension
