@@ -19,7 +19,10 @@
 
 package smfile
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // FileType represents file type format used in Smartling API.
 type FileType string
@@ -51,7 +54,7 @@ const (
 func ParseType[T intStringer](first, last T, typ string) (T, bool) {
 	var none T
 	for i := first; i <= last; i++ {
-		if i.String() == typ {
+		if strings.ToLower(i.String()) == strings.ToLower(typ) {
 			return i, true
 		}
 	}
