@@ -31,6 +31,12 @@ func TestParseType(t *testing.T) {
 			want:      batches.JAVA_PROPERTIES,
 		},
 		{
+			name:      "javaProperties",
+			typeByExt: batches.TypeByExt,
+			typ:       "javaProperties",
+			want:      batches.JAVA_PROPERTIES,
+		},
+		{
 			name:      "none",
 			typeByExt: batches.TypeByExt,
 			typ:       "TESTS",
