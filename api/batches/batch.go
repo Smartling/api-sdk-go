@@ -20,6 +20,7 @@ const jobBasePath = "/job-batches-api/v2/projects/"
 type Batch interface {
 	Create(ctx context.Context, projectID string, payload CreateBatchPayload) (CreateBatchResponse, error)
 	CreateJob(ctx context.Context, projectID string, payload CreateJobPayload) (CreateJobResponse, error)
+	GetJob(projectID string, translationJobUID string) (GetJobResponse, error)
 	UploadFile(ctx context.Context, projectID, batchUID string, payload UploadFilePayload) (UploadFileResponse, error)
 	GetStatus(ctx context.Context, projectID, batchUID string) (GetStatusResponse, error)
 }
@@ -98,6 +99,31 @@ func (h httpBatch) CreateJob(ctx context.Context, projectID string, payload Crea
 		return CreateJobResponse{}, err
 	}
 	return toCreateJobResponse(response), nil
+}
+
+// GetJob gets a job related info
+func (h httpBatch) GetJob(projectID string, translationJobUID string) (GetJobResponse, error) {
+	url := jobBasePath + projectID + "/jobs/" + translationJobUID
+	var response getJobResponse
+	rawMessage, code, err := h.client.Get(url, nil)
+	if err != nil {
+		return GetJobResponse{}, err
+	}
+	if code != 200 {
+		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, rawMessage)
+	}
+	body, err := io.ReadAll(rawMessage)
+	if err != nil {
+		return GetJobResponse{}, smerror.APIError{
+			Cause:   err,
+			URL:     url,
+			Payload: []byte(fmt.Sprintf("%v", rawMessage)),
+		}
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return GetJobResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+	return toGetJobResponse(response), nil
 }
 
 // UploadFile uploads a file to the specified batch in the project
