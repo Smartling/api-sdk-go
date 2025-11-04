@@ -116,10 +116,7 @@ func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req Upl
 		return UploadFileResponse{}, fmt.Errorf("failed to unmarshal: %v", err)
 	}
 
-	return UploadFileResponse{
-		Code:    response.Response.Code,
-		FileUID: FileUID(response.Response.Data.FileUID),
-	}, nil
+	return toUploadFileResponse(response), nil
 }
 
 func buildUploadFilePath(accountUID AccountUID) string {
