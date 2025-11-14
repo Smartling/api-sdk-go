@@ -39,6 +39,7 @@ type APIClient interface {
 	ListAllFiles(projectID string, request smfile.FilesListRequest) ([]smfile.File, error)
 	ListProjects(accountID string, request smfile.ProjectsListRequest) (*ProjectsList, error)
 	RenameFile(projectID string, oldURI string, newURI string) error
+	UploadFile(projectID string, request smfile.FileUploadRequest) (*smfile.FileUploadResult, error)
 }
 
 // HttpAPIClient represents http Smartling API client.
