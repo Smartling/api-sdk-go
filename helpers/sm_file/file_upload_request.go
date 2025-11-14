@@ -50,53 +50,40 @@ func (r *FileUploadRequest) GetForm() (*sm_form.Form, error) {
 		return nil, err
 	}
 
-	_, err = writer.Write(r.File)
-	if err != nil {
+	if _, err = writer.Write(r.File); err != nil {
 		return nil, err
 	}
 
-	err = form.Writer.WriteField("fileType", string(r.FileType))
-	if err != nil {
+	if err := form.Writer.WriteField("fileType", string(r.FileType)); err != nil {
 		return nil, err
 	}
 
 	if r.Authorize {
-		err = form.Writer.WriteField("authorize", "true")
-		if err != nil {
+		if err := form.Writer.WriteField("authorize", "true"); err != nil {
 			return nil, err
 		}
 	}
 
 	for _, locale := range r.LocalesToAuthorize {
-		err = form.Writer.WriteField("localeIdsToAuthorize[]", locale)
-		if err != nil {
+		if err := form.Writer.WriteField("localeIdsToAuthorize[]", locale); err != nil {
 			return nil, err
 		}
 	}
 
 	if r.Smartling.Namespace != "" {
-		err = form.Writer.WriteField(
-			"smartling.namespace",
-			r.Smartling.Namespace,
-		)
-		if err != nil {
+		if err := form.Writer.WriteField("smartling.namespace", r.Smartling.Namespace); err != nil {
 			return nil, err
 		}
 	}
 
 	if r.Smartling.FileCharset != "" {
-		err = form.Writer.WriteField(
-			"smartling.file_charset",
-			r.Smartling.FileCharset,
-		)
-		if err != nil {
+		if err := form.Writer.WriteField("smartling.file_charset", r.Smartling.FileCharset); err != nil {
 			return nil, err
 		}
 	}
 
 	for directive, value := range r.Smartling.Directives {
-		err = form.Writer.WriteField("smartling."+directive, value)
-		if err != nil {
+		if err := form.Writer.WriteField("smartling."+directive, value); err != nil {
 			return nil, err
 		}
 	}
