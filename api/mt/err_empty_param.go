@@ -7,7 +7,7 @@ import (
 
 // ErrEmptyParam creates a new empty param error
 func ErrEmptyParam(name string) error {
-	return errEmptyParam{
+	return &errEmptyParam{
 		paramName: name,
 	}
 }
