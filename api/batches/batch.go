@@ -110,15 +110,15 @@ func (h httpBatch) GetJob(projectID string, translationJobUID string) (GetJobRes
 		return GetJobResponse{}, err
 	}
 	if code != 200 {
-		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, rawMessage)
+		body, _ := io.ReadAll(rawMessage)
+		h.client.Logger.Debugf("response body: %s\n", body)
+		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d", code)
 	}
 	body, err := io.ReadAll(rawMessage)
 	if err != nil {
-		return GetJobResponse{}, smerror.APIError{
-			Cause:   err,
-			URL:     url,
-			Payload: []byte(fmt.Sprintf("%v", rawMessage)),
-		}
+		body, _ := io.ReadAll(rawMessage)
+		h.client.Logger.Debugf("response body: %s\n", body)
+		return GetJobResponse{}, err
 	}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return GetJobResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
