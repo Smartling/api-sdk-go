@@ -33,3 +33,10 @@ type FileStatusTranslation struct {
 func (fst FileStatusTranslation) AwaitingAuthorizationStringCount(totalStringCount int) int {
 	return totalStringCount - fst.AuthorizedStringCount - fst.ExcludedStringCount - fst.CompletedStringCount
 }
+
+func (fst FileStatusTranslation) ProgressPercent() int {
+	if total := fst.CompletedStringCount + fst.AuthorizedStringCount; total != 0 {
+		return int(100 * float64(fst.CompletedStringCount) / float64(total))
+	}
+	return 0
+}
