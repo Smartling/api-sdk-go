@@ -18,11 +18,10 @@ const jobBasePath = "/job-batches-api/v2/projects/"
 
 // Batch defines the batch behaviour
 type Batch interface {
-	Create(ctx context.Context, projectID string, payload CreateBatchPayload) (CreateBatchResponse, error)
-	CreateJob(ctx context.Context, projectID string, payload CreateJobPayload) (CreateJobResponse, error)
-	GetJob(projectID string, translationJobUID string) (GetJobResponse, error)
+	Create(projectID string, payload CreateBatchPayload) (CreateBatchResponse, error)
+	CreateJob(projectID string, payload CreateJobPayload) (CreateJobResponse, error)
 	UploadFile(ctx context.Context, projectID, batchUID string, payload UploadFilePayload) (UploadFileResponse, error)
-	GetStatus(ctx context.Context, projectID, batchUID string) (GetStatusResponse, error)
+	GetStatus(projectID, batchUID string) (GetStatusResponse, error)
 }
 
 // NewBatch returns new Batch implementation
@@ -40,7 +39,7 @@ func newHttpBatch(client *smclient.Client) httpBatch {
 }
 
 // Create creates a new batch in the specified project
-func (h httpBatch) Create(ctx context.Context, projectID string, payload CreateBatchPayload) (CreateBatchResponse, error) {
+func (h httpBatch) Create(projectID string, payload CreateBatchPayload) (CreateBatchResponse, error) {
 	url := jobBasePath + projectID + "/batches"
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
@@ -71,7 +70,7 @@ func (h httpBatch) Create(ctx context.Context, projectID string, payload CreateB
 }
 
 // CreateJob creates a new job in the specified project
-func (h httpBatch) CreateJob(ctx context.Context, projectID string, payload CreateJobPayload) (CreateJobResponse, error) {
+func (h httpBatch) CreateJob(projectID string, payload CreateJobPayload) (CreateJobResponse, error) {
 	url := jobBasePath + projectID + "/jobs"
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
@@ -99,31 +98,6 @@ func (h httpBatch) CreateJob(ctx context.Context, projectID string, payload Crea
 		return CreateJobResponse{}, err
 	}
 	return toCreateJobResponse(response), nil
-}
-
-// GetJob gets a job related info
-func (h httpBatch) GetJob(projectID string, translationJobUID string) (GetJobResponse, error) {
-	url := jobBasePath + projectID + "/jobs/" + translationJobUID
-	var response getJobResponse
-	rawMessage, code, err := h.client.Get(url, nil)
-	if err != nil {
-		return GetJobResponse{}, err
-	}
-	if code != 200 {
-		body, _ := io.ReadAll(rawMessage)
-		h.client.Logger.Debugf("response body: %s\n", body)
-		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d", code)
-	}
-	body, err := io.ReadAll(rawMessage)
-	if err != nil {
-		body, _ := io.ReadAll(rawMessage)
-		h.client.Logger.Debugf("response body: %s\n", body)
-		return GetJobResponse{}, err
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return GetJobResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-	return toGetJobResponse(response), nil
 }
 
 // UploadFile uploads a file to the specified batch in the project
@@ -222,7 +196,7 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 }
 
 // GetStatus retrieves the status of a batch in the specified project
-func (h httpBatch) GetStatus(ctx context.Context, projectID, batchUID string) (GetStatusResponse, error) {
+func (h httpBatch) GetStatus(projectID, batchUID string) (GetStatusResponse, error) {
 	url := jobBasePath + projectID + "/batches/" + batchUID
 	var response getStatusResponse
 	rawMessage, code, err := h.client.Get(url, nil)
