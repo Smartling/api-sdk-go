@@ -19,6 +19,10 @@
 
 package smfile
 
+import "errors"
+
+var ErrZeroTotalStringCount = errors.New("total string count cannot be zero")
+
 type FileStatusTranslation struct {
 	LocaleID string
 
@@ -32,4 +36,17 @@ type FileStatusTranslation struct {
 
 func (fst FileStatusTranslation) AwaitingAuthorizationStringCount(totalStringCount int) int {
 	return totalStringCount - fst.AuthorizedStringCount - fst.ExcludedStringCount - fst.CompletedStringCount
+}
+
+func (fst FileStatusTranslation) ProgressPercent(totalStringCount int) (int, error) {
+	if totalStringCount == 0 {
+		return 0, ErrZeroTotalStringCount
+	}
+	if (totalStringCount - fst.ExcludedStringCount) == 0 {
+		return 100, nil
+	}
+	if total := totalStringCount - fst.ExcludedStringCount; total != 0 {
+		return int(100 * float64(fst.CompletedStringCount) / float64(total)), nil
+	}
+	return 100, nil
 }
