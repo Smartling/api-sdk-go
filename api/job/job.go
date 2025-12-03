@@ -9,7 +9,7 @@ import (
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
 
-const jobBasePath = "/job-batches-api/v3/projects/"
+const jobBasePath = "/jobs-api/v3/projects/"
 
 // Job defines the job behaviour
 type Job interface {

@@ -21,8 +21,9 @@ package smartling
 
 import (
 	"fmt"
-	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 	"net/url"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 // RetrievalType describes type of file download.
