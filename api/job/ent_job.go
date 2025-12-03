@@ -7,13 +7,13 @@ type GetJobResponse struct {
 }
 
 // FindFirstJobByName finds the first job by name from the list of jobs
-func FindFirstJobByName(jobs []GetJobResponse, name string) GetJobResponse {
+func FindFirstJobByName(jobs []GetJobResponse, name string) (GetJobResponse, bool) {
 	for _, job := range jobs {
 		if job.JobName == name {
-			return job
+			return job, true
 		}
 	}
-	return GetJobResponse{}
+	return GetJobResponse{}, false
 }
 
 type getJobResponse struct {

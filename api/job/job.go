@@ -40,16 +40,18 @@ func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse
 	if err != nil {
 		return GetJobResponse{}, err
 	}
-	if code != 200 {
-		body, _ := io.ReadAll(rawMessage)
-		h.client.Logger.Debugf("response body: %s\n", body)
-		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d", code)
-	}
+	defer func() {
+		if err := rawMessage.Close(); err != nil {
+			h.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 	body, err := io.ReadAll(rawMessage)
 	if err != nil {
-		body, _ := io.ReadAll(rawMessage)
+		return GetJobResponse{}, fmt.Errorf("failed to read response body: %w", err)
+	}
+	if code != 200 {
 		h.client.Logger.Debugf("response body: %s\n", body)
-		return GetJobResponse{}, err
+		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d", code)
 	}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return GetJobResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
@@ -68,16 +70,18 @@ func (h httpJob) GetAllByName(projectID, name string) ([]GetJobResponse, error) 
 	if err != nil {
 		return nil, err
 	}
-	if code != 200 {
-		body, _ := io.ReadAll(rawMessage)
-		h.client.Logger.Debugf("response body: %s\n", body)
-		return nil, fmt.Errorf("unexpected response code: %d", code)
-	}
+	defer func() {
+		if err := rawMessage.Close(); err != nil {
+			h.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 	body, err := io.ReadAll(rawMessage)
 	if err != nil {
-		body, _ := io.ReadAll(rawMessage)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	if code != 200 {
 		h.client.Logger.Debugf("response body: %s\n", body)
-		return nil, err
+		return nil, fmt.Errorf("unexpected response code: %d", code)
 	}
 	var res getJobsResponse
 	if err := json.Unmarshal(body, &res); err != nil {
@@ -96,16 +100,18 @@ func (h httpJob) Progress(projectID string, translationJobUID string) (GetJobPro
 	if err != nil {
 		return GetJobProgressResponse{}, err
 	}
-	if code != 200 {
-		body, _ := io.ReadAll(rawMessage)
-		h.client.Logger.Debugf("response body: %s\n", body)
-		return GetJobProgressResponse{}, fmt.Errorf("unexpected response code: %d", code)
-	}
+	defer func() {
+		if err := rawMessage.Close(); err != nil {
+			h.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 	body, err := io.ReadAll(rawMessage)
 	if err != nil {
-		body, _ := io.ReadAll(rawMessage)
+		return GetJobProgressResponse{}, fmt.Errorf("failed to read response body: %w", err)
+	}
+	if code != 200 {
 		h.client.Logger.Debugf("response body: %s\n", body)
-		return GetJobProgressResponse{}, err
+		return GetJobProgressResponse{}, fmt.Errorf("unexpected response code: %d", code)
 	}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return GetJobProgressResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
