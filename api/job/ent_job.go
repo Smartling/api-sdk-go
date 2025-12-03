@@ -45,7 +45,7 @@ func toGetJobResponse(r getJobResponse) GetJobResponse {
 }
 
 func toGetJobsResponse(r getJobsResponse) []GetJobResponse {
-	res := make([]GetJobResponse, 0, len(r.Response.Data.Items))
+	res := make([]GetJobResponse, len(r.Response.Data.Items))
 	for i, job := range r.Response.Data.Items {
 		res[i] = GetJobResponse{
 			TranslationJobUID: job.TranslationJobUID,
