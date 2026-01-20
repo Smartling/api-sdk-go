@@ -56,12 +56,16 @@ const (
 	RetrieveChromeInstrumented = "contextMatchingInstrumented"
 )
 
-// FileDownloadRequest represents optional parameters for file download
-// operation.
+// FileDownloadRequest represents optional parameters for a file download operation.
+//
+// See: https://api-reference.smartling.com/#tag/Files/operation/downloadTranslatedFile
 type FileDownloadRequest struct {
 	smfile.FileURIRequest
 
-	Type            RetrievalType
+	Type RetrievalType
+
+	// IncludeOriginal controls the "includeOriginalStrings" query parameter.
+	// If nil, the parameter is omitted and the API defaults to including untranslated strings. .
 	IncludeOriginal *bool
 }
 
