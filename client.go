@@ -31,8 +31,8 @@ import (
 type APIClient interface {
 	Authenticate() error
 	DeleteFile(projectID string, uri string) error
-	DownloadFile(projectID string, uri string) (io.Reader, error)
-	DownloadTranslation(projectID string, localeID string, request FileDownloadRequest) (io.Reader, error)
+	DownloadFile(projectID string, uri string) (io.ReadCloser, error)
+	DownloadTranslation(projectID string, localeID string, request FileDownloadRequest) (io.ReadCloser, error)
 	GetFileStatus(projectID string, fileURI string) (*smfile.FileStatus, error)
 	GetProjectDetails(projectID string) (*ProjectDetails, error)
 	Import(projectID string, localeID string, request smfile.ImportRequest) (*FileImportResult, error)

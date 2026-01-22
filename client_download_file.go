@@ -34,7 +34,7 @@ const (
 func (c *HttpAPIClient) DownloadFile(
 	projectID string,
 	uri string,
-) (io.Reader, error) {
+) (io.ReadCloser, error) {
 	reader, _, err := c.Client.Get(
 		fmt.Sprintf(endpointDownloadFile, projectID),
 		smfile.FileURIRequest{FileURI: uri}.GetQuery(),
