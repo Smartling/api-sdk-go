@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"path"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
@@ -61,7 +62,7 @@ func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse
 
 // GetAllByName gets all jobs of a project by name
 func (h httpJob) GetAllByName(projectID, name string) ([]GetJobResponse, error) {
-	reqURL := jobBasePath + projectID + "/jobs"
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs")
 
 	params := url.Values{}
 	params.Set("jobName", name)
@@ -94,9 +95,9 @@ func (h httpJob) GetAllByName(projectID, name string) ([]GetJobResponse, error) 
 
 // Progress returns a job related progress
 func (h httpJob) Progress(projectID string, translationJobUID string) (GetJobProgressResponse, error) {
-	url := jobBasePath + projectID + "/jobs/" + translationJobUID + "/progress"
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(translationJobUID), "progress")
 	var response getJobProgressResponse
-	rawMessage, code, err := h.client.Get(url, nil)
+	rawMessage, code, err := h.client.Get(reqURL, nil)
 	if err != nil {
 		return GetJobProgressResponse{}, err
 	}
