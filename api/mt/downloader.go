@@ -11,7 +11,7 @@ import (
 // Downloader defines downloader behaviour
 type Downloader interface {
 	File(accountUID AccountUID, fileUID FileUID,
-		mtUID MtUID, localeID string) (io.Reader, error)
+		mtUID MtUID, localeID string) (io.ReadCloser, error)
 }
 
 // NewDownloader returns new Downloader implementation
@@ -29,7 +29,7 @@ func newHttpDownloader(base *base) *httpDownloader {
 
 // File downloads file
 func (d httpDownloader) File(accountUID AccountUID, fileUID FileUID,
-	mtUID MtUID, localeID string) (io.Reader, error) {
+	mtUID MtUID, localeID string) (io.ReadCloser, error) {
 	filePath := buildFilePath(accountUID, fileUID, mtUID, localeID)
 	path := joinPath(mtBasePath, filePath)
 	reader, _, err := d.base.client.Get(

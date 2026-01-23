@@ -34,7 +34,7 @@ func (c *HttpAPIClient) DownloadTranslation(
 	projectID string,
 	localeID string,
 	request FileDownloadRequest,
-) (io.Reader, error) {
+) (io.ReadCloser, error) {
 	reader, _, err := c.Client.Get(
 		fmt.Sprintf(endpointDownloadTranslation, projectID, localeID),
 		request.GetQuery(),
