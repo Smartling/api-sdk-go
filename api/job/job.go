@@ -35,9 +35,9 @@ func newHttpJob(client *smclient.Client) httpJob {
 
 // Get gets a job related info
 func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse, error) {
-	url := jobBasePath + projectID + "/jobs/" + translationJobUID
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(translationJobUID))
 	var response getJobResponse
-	rawMessage, code, err := h.client.Get(url, nil)
+	rawMessage, code, err := h.client.Get(reqURL, nil)
 	if err != nil {
 		return GetJobResponse{}, err
 	}

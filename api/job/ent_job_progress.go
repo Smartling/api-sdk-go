@@ -40,8 +40,8 @@ type getJobProgressResponse struct {
 				} `json:"workflowProgressReportList"`
 			} `json:"contentProgressReport"`
 			Progress struct {
-				PercentComplete int `json:"percentComplete"`
-				TotalWordCount  int `json:"totalWordCount"`
+				PercentComplete uint32 `json:"percentComplete"`
+				TotalWordCount  uint32 `json:"totalWordCount"`
 			} `json:"progress"`
 			SummaryReport []struct {
 				StringCount      int    `json:"stringCount"`
@@ -59,8 +59,8 @@ func toGetJobProgressResponse(r getJobProgressResponse, translationJobUID string
 	}
 	return GetJobProgressResponse{
 		TranslationJobUID: translationJobUID,
-		TotalWordCount:    uint32(r.Response.Data.Progress.TotalWordCount),
-		PercentComplete:   uint32(r.Response.Data.Progress.PercentComplete),
+		TotalWordCount:    r.Response.Data.Progress.TotalWordCount,
+		PercentComplete:   r.Response.Data.Progress.PercentComplete,
 		Json:              data,
 	}, nil
 }
