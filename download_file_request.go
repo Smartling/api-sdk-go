@@ -21,8 +21,10 @@ package smartling
 
 import (
 	"fmt"
-	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 	"net/url"
+	"strconv"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 // RetrievalType describes type of file download.
@@ -54,13 +56,17 @@ const (
 	RetrieveChromeInstrumented = "contextMatchingInstrumented"
 )
 
-// FileDownloadRequest represents optional parameters for file download
-// operation.
+// FileDownloadRequest represents optional parameters for a file download operation.
+//
+// See: https://api-reference.smartling.com/#tag/Files/operation/downloadTranslatedFile
 type FileDownloadRequest struct {
 	smfile.FileURIRequest
 
-	Type            RetrievalType
-	IncludeOriginal bool
+	Type RetrievalType
+
+	// IncludeOriginal controls the "includeOriginalStrings" query parameter.
+	// If nil, the parameter is omitted and the API defaults to including untranslated strings. .
+	IncludeOriginal *bool
 }
 
 // GetQuery returns URL values representation of download file query params.
@@ -73,8 +79,8 @@ func (request FileDownloadRequest) GetQuery() url.Values {
 		query.Set("retrievalType", fmt.Sprint(request.Type))
 	}
 
-	if request.IncludeOriginal {
-		query.Set("includeOriginalStrings", "true")
+	if request.IncludeOriginal != nil {
+		query.Set("includeOriginalStrings", strconv.FormatBool(*request.IncludeOriginal))
 	}
 
 	return query
