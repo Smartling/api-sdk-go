@@ -5,7 +5,7 @@ import "net/http"
 type (
 	// LogFunction represents abstract logger function interface which
 	// can be used for setting up logging of library actions.
-	LogFunction func(format string, args ...interface{})
+	LogFunction func(format string, args ...any)
 )
 
 var (
@@ -55,8 +55,8 @@ func NewClient(userID, tokenSecret string) *Client {
 			Infof  LogFunction
 			Debugf LogFunction
 		}{
-			Infof:  func(string, ...interface{}) {},
-			Debugf: func(string, ...interface{}) {},
+			Infof:  func(string, ...any) {},
+			Debugf: func(string, ...any) {},
 		},
 
 		UserAgent: DefaultUserAgent + "/" + Version,
