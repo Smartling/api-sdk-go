@@ -43,9 +43,9 @@ import (
 	"github.com/Smartling/api-sdk-go/helpers/utc"
 )
 
-func ExampleListFiles() {
+func ExampleHttpAPIClient_ListFiles() {
 	log.Printf("Initializing smartling client and performing autorization")
-	client := sdk.NewClient(UserID, TokenSecret)
+	client := sdk.NewHttpAPIClient(UserID, TokenSecret)
 
 	log.Printf("Listing project (%v) files", ProjectID)
 

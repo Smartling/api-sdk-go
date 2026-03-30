@@ -52,7 +52,7 @@ func (h httpBatch) Create(projectID string, payload CreateBatchPayload) (CreateB
 		return CreateBatchResponse{}, fmt.Errorf("failed to create batch: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, response: %s", resp.StatusCode, resp)
+		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, response: %v", resp.StatusCode, resp)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -82,7 +82,7 @@ func (h httpBatch) CreateJob(projectID string, payload CreateJobPayload) (Create
 		return CreateJobResponse{}, fmt.Errorf("failed to create job: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, response: %s", resp.StatusCode, resp)
+		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, response: %v", resp.StatusCode, resp)
 	}
 
 	body, err := io.ReadAll(resp.Body)

@@ -17,8 +17,8 @@ func IsErrEmptyParam(err error) bool {
 	if err == nil {
 		return false
 	}
-	var target *errEmptyParam
-	return errors.As(err, &target)
+	_, ok := errors.AsType[*errEmptyParam](err)
+	return ok
 }
 
 type errEmptyParam struct {
