@@ -42,6 +42,11 @@ func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p Star
 	if err != nil {
 		return StartResponse{}, fmt.Errorf("failed to start file translation: %w", err)
 	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			h.base.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 	type startResponse struct {
 		Response struct {
 			Code string `json:"code"`

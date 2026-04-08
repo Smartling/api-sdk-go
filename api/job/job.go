@@ -37,6 +37,11 @@ func (h httpJob) GetJob(projectID string, translationJobUID string) (GetJobRespo
 	if err != nil {
 		return GetJobResponse{}, err
 	}
+	defer func() {
+		if err := rawMessage.Close(); err != nil {
+			h.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 	if code != 200 {
 		body, _ := io.ReadAll(rawMessage)
 		h.client.Logger.Debugf("response body: %s\n", body)
