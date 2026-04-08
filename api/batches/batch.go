@@ -219,7 +219,10 @@ func (h httpBatch) GetStatus(projectID, batchUID string) (GetStatusResponse, err
 		}
 	}()
 	if code != 200 {
-		body, _ := io.ReadAll(rawMessage)
+		body, err := io.ReadAll(rawMessage)
+		if err != nil {
+			h.client.Logger.Debugf("failed to read response body: %v", err)
+		}
 		return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, body)
 	}
 	body, err := io.ReadAll(rawMessage)
