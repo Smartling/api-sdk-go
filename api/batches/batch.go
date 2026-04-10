@@ -51,6 +51,11 @@ func (h httpBatch) Create(projectID string, payload CreateBatchPayload) (CreateB
 	if err != nil {
 		return CreateBatchResponse{}, fmt.Errorf("failed to create batch: %w", err)
 	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			h.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, response: %v", resp.StatusCode, resp)
 	}
@@ -81,6 +86,11 @@ func (h httpBatch) CreateJob(projectID string, payload CreateJobPayload) (Create
 	if err != nil {
 		return CreateJobResponse{}, fmt.Errorf("failed to create job: %w", err)
 	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			h.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, response: %v", resp.StatusCode, resp)
 	}
@@ -203,8 +213,17 @@ func (h httpBatch) GetStatus(projectID, batchUID string) (GetStatusResponse, err
 	if err != nil {
 		return GetStatusResponse{}, err
 	}
+	defer func() {
+		if err := rawMessage.Close(); err != nil {
+			h.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+	}()
 	if code != 200 {
-		return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, rawMessage)
+		body, err := io.ReadAll(rawMessage)
+		if err != nil {
+			h.client.Logger.Debugf("failed to read response body: %v", err)
+		}
+		return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, body)
 	}
 	body, err := io.ReadAll(rawMessage)
 	if err != nil {
