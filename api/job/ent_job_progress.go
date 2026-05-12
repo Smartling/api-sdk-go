@@ -10,7 +10,7 @@ type GetJobProgressResponse struct {
 	TranslationJobUID string
 	TotalWordCount    uint32
 	PercentComplete   float64
-	Json              []byte
+	Json              json.RawMessage
 }
 type getJobProgressResponse struct {
 	Response struct {

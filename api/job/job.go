@@ -19,7 +19,7 @@ var ErrNotFound = errors.New("job not found")
 // Job defines the job behaviour
 type Job interface {
 	Get(projectID string, translationJobUID string) (GetJobResponse, error)
-	GetAllByName(projectID, name string) (jobs []GetJobResponse, err error)
+	SearchByName(projectID, name string) (jobs []GetJobResponse, err error)
 	Progress(projectID string, translationJobUID string) (GetJobProgressResponse, error)
 }
 
@@ -67,7 +67,7 @@ func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse
 }
 
 // GetAllByName gets all jobs of a project by name
-func (h httpJob) GetAllByName(projectID, name string) ([]GetJobResponse, error) {
+func (h httpJob) SearchByName(projectID, name string) ([]GetJobResponse, error) {
 	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs")
 
 	params := url.Values{}
@@ -82,13 +82,12 @@ func (h httpJob) GetAllByName(projectID, name string) ([]GetJobResponse, error) 
 			h.client.Logger.Debugf("failed to close response body: %v", err)
 		}
 	}()
-	body, err := io.ReadAll(rawMessage)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-	if code != 200 {
-		h.client.Logger.Debugf("response body: %s\n", body)
-		return nil, fmt.Errorf("unexpected response code: %d", code)
+	body, readErr := io.ReadAll(rawMessage)
+	if code != http.StatusOK {
+		if readErr != nil {
+			return nil, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", code, body, readErr)
+		}
+		return nil, fmt.Errorf("unexpected response code: %d, body: %s", code, body)
 	}
 	var res getJobsResponse
 	if err := json.Unmarshal(body, &res); err != nil {
