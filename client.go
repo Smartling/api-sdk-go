@@ -24,6 +24,7 @@ package smartling
 import (
 	"context"
 	"io"
+	"net/http"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -50,8 +51,8 @@ type HttpAPIClient struct {
 
 // NewHttpAPIClient returns new http Smartling API client with specified authentication
 // data.
-func NewHttpAPIClient(userID, tokenSecret string) *HttpAPIClient {
-	smclient := smclient.NewClient(userID, tokenSecret)
+func NewHttpAPIClient(client *http.Client, userID, tokenSecret string) *HttpAPIClient {
+	smclient := smclient.NewClient(client, userID, tokenSecret)
 	return &HttpAPIClient{
 		Client: smclient,
 	}
