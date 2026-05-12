@@ -1,6 +1,7 @@
 package mt
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,9 +12,9 @@ import (
 
 // TranslationControl defines translation control behaviour
 type TranslationControl interface {
-	CancelTranslation(accountUID AccountUID, fileUID FileUID, mtUID MtUID) (CancelTranslationResponse, error)
-	DetectFileLanguage(accountUID AccountUID, fileUID FileUID) (DetectFileLanguageResponse, error)
-	DetectionProgress(accountUID AccountUID, fileUID FileUID, languageDetectionUID string) (DetectionProgressResponse, error)
+	CancelTranslation(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (CancelTranslationResponse, error)
+	DetectFileLanguage(ctx context.Context, accountUID AccountUID, fileUID FileUID) (DetectFileLanguageResponse, error)
+	DetectionProgress(ctx context.Context, accountUID AccountUID, fileUID FileUID, languageDetectionUID string) (DetectionProgressResponse, error)
 }
 
 // NewTranslationControl returns new TranslationControl implementation
@@ -26,11 +27,11 @@ type httpTranslationControl struct {
 }
 
 // CancelTranslation cancels translation
-func (h httpTranslationControl) CancelTranslation(accountUID AccountUID, fileUID FileUID, mtUID MtUID) (CancelTranslationResponse, error) {
+func (h httpTranslationControl) CancelTranslation(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (CancelTranslationResponse, error) {
 	var res CancelTranslationResponse
 	startPath := buildCancelTranslationPath(accountUID, fileUID, mtUID)
 	path := joinPath(mtBasePath, startPath)
-	_, _, err := h.base.client.PostJSON(path, nil, &res, contentTypeApplicationJson)
+	_, _, err := h.base.client.PostJSON(ctx, path, nil, &res, contentTypeApplicationJson)
 	if err != nil {
 		return CancelTranslationResponse{}, fmt.Errorf("failed to cancel file translation: %w", err)
 	}
@@ -39,12 +40,12 @@ func (h httpTranslationControl) CancelTranslation(accountUID AccountUID, fileUID
 }
 
 // DetectFileLanguage detects file language
-func (h httpTranslationControl) DetectFileLanguage(accountUID AccountUID, fileUID FileUID) (DetectFileLanguageResponse, error) {
+func (h httpTranslationControl) DetectFileLanguage(ctx context.Context, accountUID AccountUID, fileUID FileUID) (DetectFileLanguageResponse, error) {
 	startPath := buildDetectFileLanguagePath(accountUID, fileUID)
 	path := joinPath(mtBasePath, startPath)
 
 	url := h.base.client.BaseURL + path
-	request, err := http.NewRequest("POST", url, nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return DetectFileLanguageResponse{}, fmt.Errorf("failed to create request: %v", err)
 	}
@@ -55,14 +56,14 @@ func (h httpTranslationControl) DetectFileLanguage(accountUID AccountUID, fileUI
 	if err != nil {
 		return DetectFileLanguageResponse{}, fmt.Errorf("failed to detect file language: %w", err)
 	}
-	if response.StatusCode != http.StatusAccepted {
-		return DetectFileLanguageResponse{}, fmt.Errorf("expected 202 status got: %d", response.StatusCode)
-	}
 	defer func() {
 		if err := response.Body.Close(); err != nil {
 			h.base.client.Logger.Debugf("failed to close response body: %v", err)
 		}
 	}()
+	if response.StatusCode != http.StatusAccepted {
+		return DetectFileLanguageResponse{}, fmt.Errorf("expected 202 status got: %d", response.StatusCode)
+	}
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -82,13 +83,13 @@ func (h httpTranslationControl) DetectFileLanguage(accountUID AccountUID, fileUI
 }
 
 // DetectionProgress returns info about detection
-func (h httpTranslationControl) DetectionProgress(accountUID AccountUID, fileUID FileUID, languageDetectionUID string) (DetectionProgressResponse, error) {
+func (h httpTranslationControl) DetectionProgress(ctx context.Context, accountUID AccountUID, fileUID FileUID, languageDetectionUID string) (DetectionProgressResponse, error) {
 	progressPath := buildDetectionProgressPath(accountUID, fileUID, languageDetectionUID)
 	path := joinPath(mtBasePath, progressPath)
 
 	url := h.base.client.BaseURL + path
 	h.base.client.Logger.Debugf("<- %s %s\n", "GET", url)
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return DetectionProgressResponse{}, fmt.Errorf("failed to create request: %v", err)
 	}

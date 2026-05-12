@@ -1,6 +1,7 @@
 package mt
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -10,8 +11,8 @@ import (
 
 // FileTranslator defines file behaviour
 type FileTranslator interface {
-	Start(accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error)
-	Progress(accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error)
+	Start(ctx context.Context, accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error)
+	Progress(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error)
 }
 
 // NewFileTranslator returns new FileTranslator implementation
@@ -29,7 +30,7 @@ type StartParams struct {
 }
 
 // Start starts file translation
-func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error) {
+func (h httpFileTranslator) Start(ctx context.Context, accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error) {
 	startPath := buildStartPath(accountUID, fileUID)
 	path := joinPath(mtBasePath, startPath)
 
@@ -38,7 +39,7 @@ func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p Star
 		return StartResponse{}, err
 	}
 
-	resp, err := h.base.client.Post(path, payload)
+	resp, err := h.base.client.Post(ctx, path, payload)
 	if err != nil {
 		return StartResponse{}, fmt.Errorf("failed to start file translation: %w", err)
 	}
@@ -67,11 +68,12 @@ func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p Star
 }
 
 // Progress return progress of file translation
-func (h httpFileTranslator) Progress(accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error) {
+func (h httpFileTranslator) Progress(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error) {
 	var res ProgressResponse
 	progressPath := buildProgressPath(accountUID, fileUID, mtUID)
 	path := joinPath(mtBasePath, progressPath)
 	_, _, err := h.base.client.GetJSON(
+		ctx,
 		path,
 		smfile.FileURIRequest{FileURI: string(fileUID)}.GetQuery(),
 		&res,

@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -32,10 +33,12 @@ const (
 
 // DownloadFile downloads original file from project.
 func (c *HttpAPIClient) DownloadFile(
+	ctx context.Context,
 	projectID string,
 	uri string,
 ) (io.ReadCloser, error) {
 	reader, _, err := c.Client.Get(
+		ctx,
 		fmt.Sprintf(endpointDownloadFile, projectID),
 		smfile.FileURIRequest{FileURI: uri}.GetQuery(),
 	)

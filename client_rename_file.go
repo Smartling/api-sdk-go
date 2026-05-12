@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
@@ -32,6 +33,7 @@ const (
 
 // RenameFile renames file to new URI.
 func (c *HttpAPIClient) RenameFile(
+	ctx context.Context,
 	projectID string,
 	oldURI string,
 	newURI string,
@@ -51,6 +53,7 @@ func (c *HttpAPIClient) RenameFile(
 	}
 
 	_, _, err = c.Client.PostJSON(
+		ctx,
 		fmt.Sprintf(endpointFileRename, projectID),
 		form.Bytes(),
 		nil,

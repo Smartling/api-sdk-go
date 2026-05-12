@@ -10,7 +10,7 @@ type (
 
 var (
 	// Version is an API SDK version, sent in User-Agent header.
-	Version = "1.1"
+	Version = "2.0"
 
 	// DefaultBaseURL specifies base URL which will be used for calls unless
 	// other is specified in the Client struct.

@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
@@ -38,6 +39,7 @@ type FileImportResult struct {
 
 // Import imports specified file as translation.
 func (c *HttpAPIClient) Import(
+	ctx context.Context,
 	projectID string,
 	localeID string,
 	request smfile.ImportRequest,
@@ -55,6 +57,7 @@ func (c *HttpAPIClient) Import(
 	}
 
 	_, _, err = c.Client.PostJSON(
+		ctx,
 		fmt.Sprintf(endpointImport, projectID, localeID),
 		form.Bytes(),
 		&result,

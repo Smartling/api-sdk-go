@@ -21,6 +21,7 @@ package smclient
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -40,43 +41,47 @@ const (
 // PostJSON performs POST request to the Smartling API. You probably do not want
 // to use it.
 func (c *Client) PostJSON(
+	ctx context.Context,
 	url string,
 	payload []byte,
 	result any,
 	options ...any,
 ) (json.RawMessage, int, error) {
-	return c.requestJSON("POST", url, nil, payload, result, options...)
+	return c.requestJSON(ctx, "POST", url, nil, payload, result, options...)
 }
 
 // Post performs POST request to the Smartling API. You probably do not want
 // to use it.
 func (c *Client) Post(
+	ctx context.Context,
 	url string,
 	payload []byte,
 	options ...any,
 ) (*http.Response, error) {
-	return c.request("POST", url, nil, payload, options...)
+	return c.request(ctx, "POST", url, nil, payload, options...)
 }
 
 // GetJSON performs GET request to the smartling API and tries to decode answer
 // as JSON.
 func (c *Client) GetJSON(
+	ctx context.Context,
 	url string,
 	params url.Values,
 	result any,
 	options ...any,
 ) (json.RawMessage, int, error) {
-	return c.requestJSON("GET", url, params, nil, result, options...)
+	return c.requestJSON(ctx, "GET", url, params, nil, result, options...)
 }
 
 // Get performs raw GET request to the Smartling API. You probably do not want
 // to use it.
 func (c *Client) Get(
+	ctx context.Context,
 	url string,
 	params url.Values,
 	options ...any,
 ) (io.ReadCloser, int, error) {
-	reply, err := c.request("GET", url, params, nil, options...)
+	reply, err := c.request(ctx, "GET", url, params, nil, options...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -85,6 +90,7 @@ func (c *Client) Get(
 }
 
 func (c *Client) request(
+	ctx context.Context,
 	method string,
 	url string,
 	params url.Values,
@@ -107,7 +113,7 @@ func (c *Client) request(
 	}
 
 	if authenticate {
-		err := c.Authenticate()
+		err := c.Authenticate(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("unable to authenticate: %w", err)
 		}
@@ -139,7 +145,8 @@ func (c *Client) request(
 		url += "?" + params.Encode()
 	}
 
-	request, err := http.NewRequest(
+	request, err := http.NewRequestWithContext(
+		ctx,
 		method,
 		c.BaseURL+url,
 		bytes.NewBuffer(payload),
@@ -176,6 +183,7 @@ func (c *Client) request(
 }
 
 func (c *Client) requestJSON(
+	ctx context.Context,
 	method string,
 	url string,
 	params url.Values,
@@ -183,7 +191,7 @@ func (c *Client) requestJSON(
 	result any,
 	options ...any,
 ) (json.RawMessage, int, error) {
-	reply, err := c.request(method, url, params, payload, options...)
+	reply, err := c.request(ctx, method, url, params, payload, options...)
 	if err != nil {
 		return nil, 0, err
 	}

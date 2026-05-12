@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 	"io"
 )
@@ -31,11 +32,13 @@ const (
 // DownloadTranslation downloads specified translated file for specified
 // locale.  Check FileDownloadRequest for more options.
 func (c *HttpAPIClient) DownloadTranslation(
+	ctx context.Context,
 	projectID string,
 	localeID string,
 	request FileDownloadRequest,
 ) (io.ReadCloser, error) {
 	reader, _, err := c.Client.Get(
+		ctx,
 		fmt.Sprintf(endpointDownloadTranslation, projectID, localeID),
 		request.GetQuery(),
 	)

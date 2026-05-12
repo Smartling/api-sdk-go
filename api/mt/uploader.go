@@ -2,6 +2,7 @@ package mt
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +15,7 @@ import (
 
 // Uploader defines uploader behaviour
 type Uploader interface {
-	UploadFile(accountUID AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error)
+	UploadFile(ctx context.Context, accountUID AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error)
 }
 
 // NewUploader returns new Uploader implementation
@@ -27,7 +28,7 @@ type httpUploader struct {
 }
 
 // UploadFile uploads file
-func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error) {
+func (u httpUploader) UploadFile(ctx context.Context, accountUID AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error) {
 	filePath := buildUploadFilePath(accountUID)
 	path := joinPath(mtBasePath, filePath)
 
@@ -87,7 +88,7 @@ func (u httpUploader) UploadFile(accountUID AccountUID, filename string, req Upl
 		"<- %s %s [payload %d bytes]\n",
 		"POST", url, buf.Len(),
 	)
-	request, err := http.NewRequest("POST", url, &buf)
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &buf)
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to create request: %v", err)
 	}

@@ -31,6 +31,7 @@
 package smartling_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -42,7 +43,7 @@ func ExampleHttpAPIClient_Authenticate() {
 
 	client := sdk.NewHttpAPIClient(UserID, TokenSecret)
 
-	err := client.Authenticate()
+	err := client.Authenticate(context.Background())
 	if err != nil {
 		fmt.Println(err)
 		return

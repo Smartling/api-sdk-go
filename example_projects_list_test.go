@@ -31,6 +31,7 @@
 package smartling_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -52,7 +53,9 @@ func ExampleHttpAPIClient_ListProjects() {
 		IncludeArchived:   false,
 	}
 
-	projects, err := client.ListProjects(AccountID, listRequest)
+	ctx := context.Background()
+
+	projects, err := client.ListProjects(ctx, AccountID, listRequest)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -64,7 +67,7 @@ func ExampleHttpAPIClient_ListProjects() {
 	)
 
 	for _, project := range projects.Items {
-		projectDetails, err := client.GetProjectDetails(project.ProjectID)
+		projectDetails, err := client.GetProjectDetails(ctx, project.ProjectID)
 		if err != nil {
 			log.Fatal(err)
 			return

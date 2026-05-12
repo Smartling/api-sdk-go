@@ -34,6 +34,7 @@
 package smartling_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -61,7 +62,7 @@ func ExampleHttpAPIClient_ListFiles() {
 		FileTypes:          []smfile.FileType{smfile.FileTypeJSON, smfile.FileTypeJavaProperties},
 	}
 
-	files, err := client.ListFiles(ProjectID, listRequest)
+	files, err := client.ListFiles(context.Background(), ProjectID, listRequest)
 	if err != nil {
 		log.Printf("%v", err.Error())
 		return

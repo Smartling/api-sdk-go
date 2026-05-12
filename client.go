@@ -22,6 +22,7 @@
 package smartling
 
 import (
+	"context"
 	"io"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
@@ -29,17 +30,17 @@ import (
 )
 
 type APIClient interface {
-	Authenticate() error
-	DeleteFile(projectID string, uri string) error
-	DownloadFile(projectID string, uri string) (io.ReadCloser, error)
-	DownloadTranslation(projectID string, localeID string, request FileDownloadRequest) (io.ReadCloser, error)
-	GetFileStatus(projectID string, fileURI string) (*smfile.FileStatus, error)
-	GetProjectDetails(projectID string) (*ProjectDetails, error)
-	Import(projectID string, localeID string, request smfile.ImportRequest) (*FileImportResult, error)
-	ListAllFiles(projectID string, request smfile.FilesListRequest) ([]smfile.File, error)
-	ListProjects(accountID string, request smfile.ProjectsListRequest) (*ProjectsList, error)
-	RenameFile(projectID string, oldURI string, newURI string) error
-	UploadFile(projectID string, request smfile.FileUploadRequest) (*smfile.FileUploadResult, error)
+	Authenticate(ctx context.Context) error
+	DeleteFile(ctx context.Context, projectID, uri string) error
+	DownloadFile(ctx context.Context, projectID, uri string) (io.ReadCloser, error)
+	DownloadTranslation(ctx context.Context, projectID, localeID string, request FileDownloadRequest) (io.ReadCloser, error)
+	GetFileStatus(ctx context.Context, projectID, fileURI string) (*smfile.FileStatus, error)
+	GetProjectDetails(ctx context.Context, projectID string) (*ProjectDetails, error)
+	Import(ctx context.Context, projectID, localeID string, request smfile.ImportRequest) (*FileImportResult, error)
+	ListAllFiles(ctx context.Context, projectID string, request smfile.FilesListRequest) ([]smfile.File, error)
+	ListProjects(ctx context.Context, accountID string, request smfile.ProjectsListRequest) (*ProjectsList, error)
+	RenameFile(ctx context.Context, projectID, oldURI, newURI string) error
+	UploadFile(ctx context.Context, projectID string, request smfile.FileUploadRequest) (*smfile.FileUploadResult, error)
 }
 
 // HttpAPIClient represents http Smartling API client.

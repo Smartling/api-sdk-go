@@ -1,6 +1,7 @@
 package mt
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -10,7 +11,7 @@ import (
 
 // Downloader defines downloader behaviour
 type Downloader interface {
-	File(accountUID AccountUID, fileUID FileUID,
+	File(ctx context.Context, accountUID AccountUID, fileUID FileUID,
 		mtUID MtUID, localeID string) (io.ReadCloser, error)
 }
 
@@ -28,11 +29,12 @@ func newHttpDownloader(base *base) *httpDownloader {
 }
 
 // File downloads file
-func (d httpDownloader) File(accountUID AccountUID, fileUID FileUID,
+func (d httpDownloader) File(ctx context.Context, accountUID AccountUID, fileUID FileUID,
 	mtUID MtUID, localeID string) (io.ReadCloser, error) {
 	filePath := buildFilePath(accountUID, fileUID, mtUID, localeID)
 	path := joinPath(mtBasePath, filePath)
 	reader, _, err := d.base.client.Get(
+		ctx,
 		path,
 		smfile.FileURIRequest{FileURI: string(fileUID)}.GetQuery(),
 	)
