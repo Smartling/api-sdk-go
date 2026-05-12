@@ -24,6 +24,7 @@ package smartling_test
 import (
 	"context"
 	"log"
+	"net/http"
 	"time"
 
 	sdk "github.com/Smartling/api-sdk-go"
@@ -42,7 +43,7 @@ func ExampleHttpAPIClient_basic() {
 
 	log.Printf("Initializing sdk client and performing autorization")
 
-	client := sdk.NewHttpAPIClient(userID, TokenSecret)
+	client := sdk.NewHttpAPIClient(&http.Client{}, userID, TokenSecret)
 
 	log.Printf("Listing projects:")
 

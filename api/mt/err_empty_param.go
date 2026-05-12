@@ -26,6 +26,6 @@ type errEmptyParam struct {
 }
 
 // Error returns the string representation of the error
-func (e errEmptyParam) Error() string {
+func (e *errEmptyParam) Error() string {
 	return fmt.Sprintf("parameter `%s` cannot be empty", e.paramName)
 }

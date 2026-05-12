@@ -2,10 +2,7 @@ package mt
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
@@ -28,111 +25,38 @@ type httpTranslationControl struct {
 
 // CancelTranslation cancels translation
 func (h httpTranslationControl) CancelTranslation(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (CancelTranslationResponse, error) {
-	var res CancelTranslationResponse
-	startPath := buildCancelTranslationPath(accountUID, fileUID, mtUID)
-	path := joinPath(mtBasePath, startPath)
-	_, _, err := h.base.client.PostJSON(ctx, path, nil, &res, contentTypeApplicationJson)
+	path := joinPath(mtBasePath, buildCancelTranslationPath(accountUID, fileUID, mtUID))
+	var response cancelTranslationResponse
+	_, code, err := h.base.client.PostJSON(ctx, path, nil, &response.Response.Data)
 	if err != nil {
 		return CancelTranslationResponse{}, fmt.Errorf("failed to cancel file translation: %w", err)
 	}
-	h.base.client.Logger.Debugf("response body: %v\n", res)
-	return res, nil
+	response.Response.Code = code
+	return toCancelTranslationResponse(response), nil
 }
 
 // DetectFileLanguage detects file language
 func (h httpTranslationControl) DetectFileLanguage(ctx context.Context, accountUID AccountUID, fileUID FileUID) (DetectFileLanguageResponse, error) {
-	startPath := buildDetectFileLanguagePath(accountUID, fileUID)
-	path := joinPath(mtBasePath, startPath)
-
-	url := h.base.client.BaseURL + path
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
-	if err != nil {
-		return DetectFileLanguageResponse{}, fmt.Errorf("failed to create request: %v", err)
-	}
-
-	request.Header.Set("Authorization", "Bearer "+h.base.client.Credentials.AccessToken.Value)
-
-	response, err := h.base.client.HTTP.Do(request)
+	path := joinPath(mtBasePath, buildDetectFileLanguagePath(accountUID, fileUID))
+	var response detectFileLanguageResponse
+	_, code, err := h.base.client.PostJSON(ctx, path, nil, &response.Response.Data)
 	if err != nil {
 		return DetectFileLanguageResponse{}, fmt.Errorf("failed to detect file language: %w", err)
 	}
-	defer func() {
-		if err := response.Body.Close(); err != nil {
-			h.base.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	if response.StatusCode != http.StatusAccepted {
-		return DetectFileLanguageResponse{}, fmt.Errorf("expected 202 status got: %d", response.StatusCode)
-	}
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return DetectFileLanguageResponse{}, fmt.Errorf("failed to read response body: %v", err)
-	}
-	h.base.client.Logger.Debugf("response body: %s\n", body)
-
-	var res detectFileLanguageResponse
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return DetectFileLanguageResponse{}, fmt.Errorf("failed to unmarshal: %v", err)
-	}
-	return DetectFileLanguageResponse{
-		Code:                 res.Response.Code,
-		LanguageDetectionUID: res.Response.Data.LanguageDetectionUID,
-	}, nil
+	response.Response.Code = code
+	return toDetectFileLanguageResponse(response), nil
 }
 
 // DetectionProgress returns info about detection
 func (h httpTranslationControl) DetectionProgress(ctx context.Context, accountUID AccountUID, fileUID FileUID, languageDetectionUID string) (DetectionProgressResponse, error) {
-	progressPath := buildDetectionProgressPath(accountUID, fileUID, languageDetectionUID)
-	path := joinPath(mtBasePath, progressPath)
-
-	url := h.base.client.BaseURL + path
-	h.base.client.Logger.Debugf("<- %s %s\n", "GET", url)
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	path := joinPath(mtBasePath, buildDetectionProgressPath(accountUID, fileUID, languageDetectionUID))
+	var response detectionProgressResponse
+	_, code, err := h.base.client.GetJSON(ctx, path, nil, &response.Response.Data)
 	if err != nil {
-		return DetectionProgressResponse{}, fmt.Errorf("failed to create request: %v", err)
+		return DetectionProgressResponse{}, fmt.Errorf("failed to get detection progress: %w", err)
 	}
-	request.Header.Set("Authorization", "Bearer "+h.base.client.Credentials.AccessToken.Value)
-
-	response, err := h.base.client.HTTP.Do(request)
-	if err != nil {
-		return DetectionProgressResponse{}, fmt.Errorf("failed to detect file language: %w", err)
-	}
-	defer func() {
-		if err := response.Body.Close(); err != nil {
-			h.base.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return DetectionProgressResponse{}, fmt.Errorf("failed to read response body: %v", err)
-	}
-	h.base.client.Logger.Debugf("response body: %s\n", body)
-
-	var res detectionProgressResponse
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return DetectionProgressResponse{}, fmt.Errorf("failed to unmarshal: %v", err)
-	}
-	detectedSourceLanguages := make([]DetectedSourceLanguage, len(res.Response.Data.DetectedSourceLanguages))
-	for i, v := range res.Response.Data.DetectedSourceLanguages {
-		detectedSourceLanguages[i] = DetectedSourceLanguage{
-			LanguageID:      v.LanguageID,
-			DefaultLocaleID: v.DefaultLocaleID,
-		}
-	}
-	var restErr string
-	if res.Response.Data.Error != nil {
-		restErr = *(res.Response.Data.Error)
-	}
-	return DetectionProgressResponse{
-		Code:                    res.Response.Code,
-		State:                   res.Response.Data.State,
-		Error:                   restErr,
-		DetectedSourceLanguages: detectedSourceLanguages,
-	}, nil
+	response.Response.Code = code
+	return toDetectionProgressResponse(response), nil
 }
 
 func buildCancelTranslationPath(accountUID AccountUID, fileUID FileUID, mtUID MtUID) string {

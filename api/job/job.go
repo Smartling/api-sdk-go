@@ -2,9 +2,7 @@ package job
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
@@ -33,25 +31,12 @@ func newHttpJob(client *smclient.Client) httpJob {
 // GetJob gets a job related info
 func (h httpJob) GetJob(ctx context.Context, projectID, translationJobUID string) (GetJobResponse, error) {
 	url := jobBasePath + projectID + "/jobs/" + translationJobUID
+
 	var response getJobResponse
-	rawMessage, code, err := h.client.Get(ctx, url, nil)
+	_, code, err := h.client.GetJSON(ctx, url, nil, &response.Response.Data)
 	if err != nil {
-		return GetJobResponse{}, err
+		return GetJobResponse{}, fmt.Errorf("failed to get job: %w", err)
 	}
-	defer func() {
-		if err := rawMessage.Close(); err != nil {
-			h.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	body, err := io.ReadAll(rawMessage)
-	if err != nil {
-		return GetJobResponse{}, fmt.Errorf("failed to read response body: %w", err)
-	}
-	if code != 200 {
-		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, body)
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return GetJobResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
+	response.Response.Code = code
 	return toGetJobResponse(response), nil
 }

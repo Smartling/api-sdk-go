@@ -37,6 +37,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	sdk "github.com/Smartling/api-sdk-go"
@@ -46,7 +47,7 @@ import (
 
 func ExampleHttpAPIClient_ListFiles() {
 	log.Printf("Initializing smartling client and performing autorization")
-	client := sdk.NewHttpAPIClient(UserID, TokenSecret)
+	client := sdk.NewHttpAPIClient(&http.Client{}, UserID, TokenSecret)
 
 	log.Printf("Listing project (%v) files", ProjectID)
 

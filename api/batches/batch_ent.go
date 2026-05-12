@@ -27,14 +27,14 @@ type LocaleWorkflow struct {
 
 // CreateBatchResponse defines create batch response
 type CreateBatchResponse struct {
-	Code     string
+	Code     int
 	BatchUID string
 }
 
 // createBatchResponse defines create batch response as defined in API
 type createBatchResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			BatchUID string `json:"batchUid"`
 		} `json:"data"`
@@ -60,26 +60,12 @@ type UploadFilePayload struct {
 
 // UploadFileResponse defines upload file response
 type UploadFileResponse struct {
-	Code string
-}
-
-// uploadFileResponse defines upload file response as defined in API
-type uploadFileResponse struct {
-	Response struct {
-		Code string `json:"code"`
-		Data any    `json:"data"`
-	} `json:"response"`
-}
-
-func toUploadFileResponse(r uploadFileResponse) UploadFileResponse {
-	return UploadFileResponse{
-		Code: r.Response.Code,
-	}
+	Code int
 }
 
 // GetStatusResponse defines get status response
 type GetStatusResponse struct {
-	Code              string
+	Code              int
 	Authorized        bool
 	GeneralErrors     string
 	ProjectID         string
@@ -107,7 +93,7 @@ type TargetLocale struct {
 // getStatusResponse defines get status response as defined in API
 type getStatusResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			Authorized bool `json:"authorized"`
 			Files      []struct {
@@ -170,7 +156,7 @@ type CreateJobPayload struct {
 
 // CreateJobResponse defines create job response
 type CreateJobResponse struct {
-	Code              string
+	Code              int
 	TranslationJobUID string
 	JobName           string
 	JobNumber         string
@@ -180,7 +166,7 @@ type CreateJobResponse struct {
 }
 type createJobResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			TranslationJobUID string   `json:"translationJobUid"`
 			JobName           string   `json:"jobName"`

@@ -245,7 +245,7 @@ func (c *Client) requestJSON(
 		)
 	}
 
-	if code != 200 {
+	if code != http.StatusOK {
 		switch code {
 		case 202:
 			// ok

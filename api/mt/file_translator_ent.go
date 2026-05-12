@@ -2,14 +2,14 @@ package mt
 
 // StartResponse defines start translation response
 type StartResponse struct {
-	Code  string
+	Code  int
 	MtUID MtUID
 }
 
-// StartResponse defines start translation response
+// startResponse defines start translation response as defined in API
 type startResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			MtUID string `json:"mtUid"`
 		} `json:"data"`
@@ -25,7 +25,7 @@ func toStartResponse(r startResponse) StartResponse {
 
 // ProgressResponse defines progress translation response
 type ProgressResponse struct {
-	Code                  string
+	Code                  int
 	State                 string
 	RequestedStringCount  int
 	Error                 string
@@ -54,7 +54,7 @@ func (e ErrorResponse) IsSet() bool {
 
 type progressResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			State                 string `json:"state"`
 			RequestedStringCount  int    `json:"requestedStringCount"`
@@ -78,15 +78,19 @@ type progressResponse struct {
 func toProgressResponse(r progressResponse) ProgressResponse {
 	localeProcessStatuses := make([]LocaleProcessStatusResponse, len(r.Response.Data.LocaleProcessStatuses))
 	for key, val := range r.Response.Data.LocaleProcessStatuses {
+		var lpErr ErrorResponse
+		if val.Error != nil {
+			lpErr = ErrorResponse{
+				Key:     val.Error.Key,
+				Message: val.Error.Message,
+				ErrorID: val.Error.Details.ErrorID,
+			}
+		}
 		localeProcessStatuses[key] = LocaleProcessStatusResponse{
 			LocaleID:             val.LocaleID,
 			State:                val.State,
 			ProcessedStringCount: val.ProcessedStringCount,
-			Error: ErrorResponse{
-				Key:     val.Error.Key,
-				Message: val.Error.Message,
-				ErrorID: val.Error.Details.ErrorID,
-			},
+			Error:                lpErr,
 		}
 	}
 	return ProgressResponse{

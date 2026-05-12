@@ -2,7 +2,7 @@ package mt
 
 // UploadFileResponse defines upload file response
 type UploadFileResponse struct {
-	Code    string
+	Code    int
 	FileUID FileUID
 }
 
@@ -16,7 +16,7 @@ type UploadFileRequest struct {
 
 type uploadFileResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			FileUID string `json:"fileUid"`
 		} `json:"data"`
