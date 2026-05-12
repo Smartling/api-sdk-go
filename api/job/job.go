@@ -2,8 +2,10 @@ package job
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"path"
 
@@ -11,6 +13,8 @@ import (
 )
 
 const jobBasePath = "/jobs-api/v3/projects/"
+
+var ErrNotFound = errors.New("job not found")
 
 // Job defines the job behaviour
 type Job interface {
@@ -46,9 +50,15 @@ func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse
 			h.client.Logger.Debugf("failed to close response body: %v", err)
 		}
 	}()
-	if code != 200 {
-		h.client.Logger.Debugf("response body: %s\n", body)
-		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d", code)
+	body, readErr := io.ReadAll(rawMessage)
+	if code == http.StatusNotFound {
+		return GetJobResponse{}, ErrNotFound
+	}
+	if code != http.StatusOK {
+		if readErr != nil {
+			return GetJobResponse{}, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", code, body, readErr)
+		}
+		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d, body: %s", code, body)
 	}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return GetJobResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)

@@ -3,6 +3,8 @@ package mt
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -47,6 +49,13 @@ func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p Star
 			h.base.client.Logger.Debugf("failed to close response body: %v", err)
 		}
 	}()
+	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			h.base.client.Logger.Debugf("failed to read response body: %v", err)
+		}
+		return StartResponse{}, fmt.Errorf("unexpected response code: %d, body: %s", resp.StatusCode, body)
+	}
 	type startResponse struct {
 		Response struct {
 			Code string `json:"code"`

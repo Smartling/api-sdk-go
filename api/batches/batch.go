@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -11,10 +12,11 @@ import (
 	"net/textproto"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
-	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
 
 const jobBasePath = "/job-batches-api/v2/projects/"
+
+var ErrNotFound = errors.New("batch not found")
 
 // Batch defines the batch behaviour
 type Batch interface {
@@ -56,16 +58,15 @@ func (h httpBatch) Create(projectID string, payload CreateBatchPayload) (CreateB
 			h.client.Logger.Debugf("failed to close response body: %v", err)
 		}
 	}()
+	body, readErr := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, response: %v", resp.StatusCode, resp)
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return CreateBatchResponse{}, smerror.APIError{
-			Cause:   err,
-			URL:     url,
-			Payload: payloadB,
+		if readErr != nil {
+			return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", resp.StatusCode, body, readErr)
 		}
+		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, body: %s", resp.StatusCode, body)
+	}
+	if readErr != nil {
+		return CreateBatchResponse{}, fmt.Errorf("failed to read response body: %w", readErr)
 	}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
@@ -91,18 +92,17 @@ func (h httpBatch) CreateJob(projectID string, payload CreateJobPayload) (Create
 			h.client.Logger.Debugf("failed to close response body: %v", err)
 		}
 	}()
+	body, readErr := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, response: %v", resp.StatusCode, resp)
+		if readErr != nil {
+			return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", resp.StatusCode, body, readErr)
+		}
+		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, body: %s", resp.StatusCode, body)
+	}
+	if readErr != nil {
+		return CreateJobResponse{}, fmt.Errorf("failed to read response body: %w", readErr)
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return CreateJobResponse{}, smerror.APIError{
-			Cause:   err,
-			URL:     url,
-			Payload: payloadB,
-		}
-	}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return CreateJobResponse{}, err
@@ -218,20 +218,18 @@ func (h httpBatch) GetStatus(projectID, batchUID string) (GetStatusResponse, err
 			h.client.Logger.Debugf("failed to close response body: %v", err)
 		}
 	}()
-	if code != 200 {
-		body, err := io.ReadAll(rawMessage)
-		if err != nil {
-			h.client.Logger.Debugf("failed to read response body: %v", err)
-		}
-		return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, body)
+	body, readErr := io.ReadAll(rawMessage)
+	if code == http.StatusNotFound {
+		return GetStatusResponse{}, ErrNotFound
 	}
-	body, err := io.ReadAll(rawMessage)
-	if err != nil {
-		return GetStatusResponse{}, smerror.APIError{
-			Cause:   err,
-			URL:     url,
-			Payload: []byte(fmt.Sprintf("%v", rawMessage)),
+	if code != http.StatusOK {
+		if readErr != nil {
+			return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", code, body, readErr)
 		}
+		return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d, body: %s", code, body)
+	}
+	if readErr != nil {
+		return GetStatusResponse{}, fmt.Errorf("failed to read response body: %w", readErr)
 	}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return GetStatusResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
