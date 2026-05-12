@@ -10,6 +10,7 @@ import (
 	"path"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
 
 const jobBasePath = "/jobs-api/v3/projects/"
@@ -43,6 +44,9 @@ func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse
 	var response getJobResponse
 	rawMessage, code, err := h.client.Get(reqURL, nil)
 	if err != nil {
+		if _, ok := err.(smerror.NotFoundError); ok {
+			return GetJobResponse{}, ErrNotFound
+		}
 		return GetJobResponse{}, err
 	}
 	defer func() {
@@ -51,9 +55,6 @@ func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse
 		}
 	}()
 	body, readErr := io.ReadAll(rawMessage)
-	if code == http.StatusNotFound {
-		return GetJobResponse{}, ErrNotFound
-	}
 	if code != http.StatusOK {
 		if readErr != nil {
 			return GetJobResponse{}, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", code, body, readErr)

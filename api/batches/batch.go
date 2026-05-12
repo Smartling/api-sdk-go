@@ -12,6 +12,7 @@ import (
 	"net/textproto"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
 
 const jobBasePath = "/job-batches-api/v2/projects/"
@@ -211,6 +212,9 @@ func (h httpBatch) GetStatus(projectID, batchUID string) (GetStatusResponse, err
 	var response getStatusResponse
 	rawMessage, code, err := h.client.Get(url, nil)
 	if err != nil {
+		if _, ok := err.(smerror.NotFoundError); ok {
+			return GetStatusResponse{}, ErrNotFound
+		}
 		return GetStatusResponse{}, err
 	}
 	defer func() {
@@ -219,9 +223,6 @@ func (h httpBatch) GetStatus(projectID, batchUID string) (GetStatusResponse, err
 		}
 	}()
 	body, readErr := io.ReadAll(rawMessage)
-	if code == http.StatusNotFound {
-		return GetStatusResponse{}, ErrNotFound
-	}
 	if code != http.StatusOK {
 		if readErr != nil {
 			return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", code, body, readErr)
