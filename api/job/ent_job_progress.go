@@ -9,7 +9,7 @@ import (
 type GetJobProgressResponse struct {
 	TranslationJobUID string
 	TotalWordCount    uint32
-	PercentComplete   uint32
+	PercentComplete   float64
 	Json              []byte
 }
 type getJobProgressResponse struct {
@@ -40,8 +40,8 @@ type getJobProgressResponse struct {
 				} `json:"workflowProgressReportList"`
 			} `json:"contentProgressReport"`
 			Progress struct {
-				PercentComplete uint32 `json:"percentComplete"`
-				TotalWordCount  uint32 `json:"totalWordCount"`
+				PercentComplete float64 `json:"percentComplete"`
+				TotalWordCount  uint32  `json:"totalWordCount"`
 			} `json:"progress"`
 			SummaryReport []struct {
 				StringCount      int    `json:"stringCount"`
