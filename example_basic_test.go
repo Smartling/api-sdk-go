@@ -29,7 +29,7 @@ import (
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
-func ExampleBasic() {
+func ExampleHttpAPIClient_basic() {
 	const (
 		userID      = ""
 		TokenSecret = ""
@@ -39,7 +39,7 @@ func ExampleBasic() {
 
 	log.Printf("Initializing sdk client and performing autorization")
 
-	client := sdk.NewClient(userID, TokenSecret)
+	client := sdk.NewHttpAPIClient(userID, TokenSecret)
 
 	log.Printf("Listing projects:")
 

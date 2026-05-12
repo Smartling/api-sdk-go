@@ -37,10 +37,10 @@ import (
 	sdk "github.com/Smartling/api-sdk-go"
 )
 
-func ExampleAuth() {
+func ExampleHttpAPIClient_Authenticate() {
 	log.Printf("Initializing smartling client and performing autorization")
 
-	client := sdk.NewClient(UserID, TokenSecret)
+	client := sdk.NewHttpAPIClient(UserID, TokenSecret)
 
 	err := client.Authenticate()
 	if err != nil {

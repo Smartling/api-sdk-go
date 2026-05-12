@@ -39,10 +39,10 @@ import (
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
-func ExampleProjects_List() {
+func ExampleHttpAPIClient_ListProjects() {
 	log.Printf("Initializing smartling client and performing autorization")
 
-	client := sdk.NewClient(UserID, TokenSecret)
+	client := sdk.NewHttpAPIClient(UserID, TokenSecret)
 
 	log.Printf("Listing projects for account ID %v:", AccountID)
 

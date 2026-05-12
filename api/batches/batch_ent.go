@@ -66,8 +66,8 @@ type UploadFileResponse struct {
 // uploadFileResponse defines upload file response as defined in API
 type uploadFileResponse struct {
 	Response struct {
-		Code string      `json:"code"`
-		Data interface{} `json:"data"`
+		Code string `json:"code"`
+		Data any    `json:"data"`
 	} `json:"response"`
 }
 

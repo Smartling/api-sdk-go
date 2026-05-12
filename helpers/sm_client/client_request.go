@@ -42,8 +42,8 @@ const (
 func (c *Client) PostJSON(
 	url string,
 	payload []byte,
-	result interface{},
-	options ...interface{},
+	result any,
+	options ...any,
 ) (json.RawMessage, int, error) {
 	return c.requestJSON("POST", url, nil, payload, result, options...)
 }
@@ -53,7 +53,7 @@ func (c *Client) PostJSON(
 func (c *Client) Post(
 	url string,
 	payload []byte,
-	options ...interface{},
+	options ...any,
 ) (*http.Response, error) {
 	return c.request("POST", url, nil, payload, options...)
 }
@@ -63,8 +63,8 @@ func (c *Client) Post(
 func (c *Client) GetJSON(
 	url string,
 	params url.Values,
-	result interface{},
-	options ...interface{},
+	result any,
+	options ...any,
 ) (json.RawMessage, int, error) {
 	return c.requestJSON("GET", url, params, nil, result, options...)
 }
@@ -74,7 +74,7 @@ func (c *Client) GetJSON(
 func (c *Client) Get(
 	url string,
 	params url.Values,
-	options ...interface{},
+	options ...any,
 ) (io.ReadCloser, int, error) {
 	reply, err := c.request("GET", url, params, nil, options...)
 	if err != nil {
@@ -89,7 +89,7 @@ func (c *Client) request(
 	url string,
 	params url.Values,
 	payload []byte,
-	options ...interface{},
+	options ...any,
 ) (*http.Response, error) {
 	var (
 		authenticate = true
@@ -180,8 +180,8 @@ func (c *Client) requestJSON(
 	url string,
 	params url.Values,
 	payload []byte,
-	result interface{},
-	options ...interface{},
+	result any,
+	options ...any,
 ) (json.RawMessage, int, error) {
 	reply, err := c.request(method, url, params, payload, options...)
 	if err != nil {

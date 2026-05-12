@@ -98,7 +98,8 @@ func TestFileStatusTranslation_ProgressPercent(t *testing.T) {
 				CompletedStringCount:  10,
 				ExcludedStringCount:   0,
 			},
-			wantProgressPercent: 100,
+			wantProgressPercent: 0,
+			wantErr:             true,
 		},
 	}
 	for _, tt := range tests {

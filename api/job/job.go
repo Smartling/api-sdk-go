@@ -46,10 +46,6 @@ func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse
 			h.client.Logger.Debugf("failed to close response body: %v", err)
 		}
 	}()
-	body, err := io.ReadAll(rawMessage)
-	if err != nil {
-		return GetJobResponse{}, fmt.Errorf("failed to read response body: %w", err)
-	}
 	if code != 200 {
 		h.client.Logger.Debugf("response body: %s\n", body)
 		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d", code)
