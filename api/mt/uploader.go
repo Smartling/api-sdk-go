@@ -3,6 +3,7 @@ package mt
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/textproto"
@@ -54,7 +55,9 @@ func (u httpUploader) UploadFile(ctx context.Context, accountUID AccountUID, fil
 	if err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to create request part: %w", err)
 	}
-	if _, err := fmt.Fprintf(requestPart, `{"fileType":"%s"}`, req.FileType); err != nil {
+	if err := json.NewEncoder(requestPart).Encode(struct {
+		FileType Type `json:"fileType"`
+	}{req.FileType}); err != nil {
 		return UploadFileResponse{}, fmt.Errorf("failed to write request: %w", err)
 	}
 

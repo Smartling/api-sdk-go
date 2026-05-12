@@ -34,8 +34,9 @@ import (
 )
 
 const (
-	successResponseCode = "success"
-	validationErrorCode = "validation_error"
+	successResponseCode  = "success"
+	acceptedResponseCode = "accepted"
+	validationErrorCode  = "validation_error"
 )
 
 // PostJSON performs POST request to the Smartling API. You probably do not want
@@ -204,12 +205,19 @@ func (c *Client) requestJSON(
 
 	code := reply.StatusCode
 
+	// Only surface the request payload in error messages when it's JSON.
+	// Multipart/binary bodies (file uploads) would dump unreadable bytes.
+	errPayload := payload
+	if reply.Request != nil && !strings.HasPrefix(reply.Request.Header.Get("Content-Type"), "application/json") {
+		errPayload = nil
+	}
+
 	body, err := io.ReadAll(reply.Body)
 	if err != nil {
 		return nil, code, smerror.APIError{
 			Cause:   err,
 			URL:     url,
-			Payload: payload,
+			Payload: errPayload,
 		}
 	}
 
@@ -275,16 +283,18 @@ func (c *Client) requestJSON(
 		}
 	}
 
-	if strings.ToLower(response.Response.Code) != successResponseCode {
+	envelopeCode := strings.ToLower(response.Response.Code)
+	if envelopeCode != successResponseCode && envelopeCode != acceptedResponseCode {
 		return nil, 0, smerror.APIError{
 			Cause: fmt.Errorf(
-				`unexpected response status (expected "%s"): %#v`,
+				`unexpected response status (expected %q or %q): %#v`,
 				successResponseCode,
+				acceptedResponseCode,
 				response.Response.Code,
 			),
 			URL:      url,
 			Params:   params,
-			Payload:  payload,
+			Payload:  errPayload,
 			Response: body,
 			Headers:  &reply.Header,
 		}
@@ -300,7 +310,7 @@ func (c *Client) requestJSON(
 			Cause:    fmt.Errorf("unable to decode API response data: %w", err),
 			URL:      url,
 			Params:   params,
-			Payload:  payload,
+			Payload:  errPayload,
 			Response: body,
 			Headers:  &reply.Header,
 		}

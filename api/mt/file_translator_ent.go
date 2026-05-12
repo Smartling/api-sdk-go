@@ -58,7 +58,7 @@ type progressResponse struct {
 		Data struct {
 			State                 string `json:"state"`
 			RequestedStringCount  int    `json:"requestedStringCount"`
-			Error                 string `json:"error;omitempty"`
+			Error                 string `json:"error,omitempty"`
 			LocaleProcessStatuses []struct {
 				LocaleID             string `json:"localeId"`
 				State                string `json:"state"`
