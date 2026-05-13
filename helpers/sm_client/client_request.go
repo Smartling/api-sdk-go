@@ -285,7 +285,7 @@ func (c *Client) requestJSON(
 
 	envelopeCode := strings.ToLower(response.Response.Code)
 	if envelopeCode != successResponseCode && envelopeCode != acceptedResponseCode {
-		return nil, 0, smerror.APIError{
+		return nil, code, smerror.APIError{
 			Cause: fmt.Errorf(
 				`unexpected response status (expected %q or %q): %#v`,
 				successResponseCode,
@@ -306,7 +306,7 @@ func (c *Client) requestJSON(
 
 	err = json.Unmarshal(response.Response.Data, result)
 	if err != nil {
-		return nil, 0, smerror.APIError{
+		return nil, code, smerror.APIError{
 			Cause:    fmt.Errorf("unable to decode API response data: %w", err),
 			URL:      url,
 			Params:   params,

@@ -23,6 +23,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
@@ -37,7 +38,7 @@ func (c *HttpAPIClient) DownloadFile(
 	projectID string,
 	uri string,
 ) (io.ReadCloser, error) {
-	reader, _, err := c.Client.Get(
+	reader, code, err := c.Client.Get(
 		ctx,
 		fmt.Sprintf(endpointDownloadFile, projectID),
 		smfile.FileURIRequest{FileURI: uri}.GetQuery(),
@@ -45,6 +46,12 @@ func (c *HttpAPIClient) DownloadFile(
 	if err != nil {
 		return nil, fmt.Errorf("failed to download original file: %w", err)
 	}
-
+	if code != http.StatusOK {
+		body, _ := io.ReadAll(reader)
+		if err := reader.Close(); err != nil {
+			c.Client.Logger.Debugf("failed to close response body: %v", err)
+		}
+		return nil, fmt.Errorf("failed to download original file: unexpected response code %d: %s", code, body)
+	}
 	return reader, nil
 }
