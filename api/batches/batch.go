@@ -5,23 +5,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"mime/multipart"
-	"net/http"
 	"net/textproto"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
-	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
 
 const jobBasePath = "/job-batches-api/v2/projects/"
 
 // Batch defines the batch behaviour
 type Batch interface {
-	Create(projectID string, payload CreateBatchPayload) (CreateBatchResponse, error)
-	CreateJob(projectID string, payload CreateJobPayload) (CreateJobResponse, error)
+	Create(ctx context.Context, projectID string, payload CreateBatchPayload) (CreateBatchResponse, error)
+	CreateJob(ctx context.Context, projectID string, payload CreateJobPayload) (CreateJobResponse, error)
 	UploadFile(ctx context.Context, projectID, batchUID string, payload UploadFilePayload) (UploadFileResponse, error)
-	GetStatus(projectID, batchUID string) (GetStatusResponse, error)
+	GetStatus(ctx context.Context, projectID, batchUID string) (GetStatusResponse, error)
 }
 
 // NewBatch returns new Batch implementation
@@ -39,7 +36,7 @@ func newHttpBatch(client *smclient.Client) httpBatch {
 }
 
 // Create creates a new batch in the specified project
-func (h httpBatch) Create(projectID string, payload CreateBatchPayload) (CreateBatchResponse, error) {
+func (h httpBatch) Create(ctx context.Context, projectID string, payload CreateBatchPayload) (CreateBatchResponse, error) {
 	url := jobBasePath + projectID + "/batches"
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
@@ -47,72 +44,35 @@ func (h httpBatch) Create(projectID string, payload CreateBatchPayload) (CreateB
 	}
 
 	var response createBatchResponse
-	resp, err := h.client.Post(url, payloadB, &response)
+	_, code, err := h.client.PostJSON(ctx, url, payloadB, &response.Response.Data)
 	if err != nil {
 		return CreateBatchResponse{}, fmt.Errorf("failed to create batch: %w", err)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			h.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	if resp.StatusCode != http.StatusOK {
-		return CreateBatchResponse{}, fmt.Errorf("unexpected response code: %d, response: %v", resp.StatusCode, resp)
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return CreateBatchResponse{}, smerror.APIError{
-			Cause:   err,
-			URL:     url,
-			Payload: payloadB,
-		}
-	}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return CreateBatchResponse{}, err
-	}
+	response.Response.Code = code
 	return toCreateBatchResponse(response), nil
 }
 
 // CreateJob creates a new job in the specified project
-func (h httpBatch) CreateJob(projectID string, payload CreateJobPayload) (CreateJobResponse, error) {
+func (h httpBatch) CreateJob(ctx context.Context, projectID string, payload CreateJobPayload) (CreateJobResponse, error) {
 	url := jobBasePath + projectID + "/jobs"
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
 		return CreateJobResponse{}, fmt.Errorf("unable to marshal: %w", err)
 	}
+
 	var response createJobResponse
-	resp, err := h.client.Post(url, payloadB, &response)
+	_, code, err := h.client.PostJSON(ctx, url, payloadB, &response.Response.Data)
 	if err != nil {
 		return CreateJobResponse{}, fmt.Errorf("failed to create job: %w", err)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			h.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	if resp.StatusCode != http.StatusOK {
-		return CreateJobResponse{}, fmt.Errorf("unexpected response code: %d, response: %v", resp.StatusCode, resp)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return CreateJobResponse{}, smerror.APIError{
-			Cause:   err,
-			URL:     url,
-			Payload: payloadB,
-		}
-	}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return CreateJobResponse{}, err
-	}
+	response.Response.Code = code
 	return toCreateJobResponse(response), nil
 }
 
 // UploadFile uploads a file to the specified batch in the project
 func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, payload UploadFilePayload) (UploadFileResponse, error) {
 	path := jobBasePath + projectID + "/batches/" + batchUID + "/file"
+
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
 
@@ -120,8 +80,7 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 		if locale == "" {
 			continue
 		}
-		err := writer.WriteField("localeIdsToAuthorize[]", locale)
-		if err != nil {
+		if err := writer.WriteField("localeIdsToAuthorize[]", locale); err != nil {
 			return UploadFileResponse{}, err
 		}
 	}
@@ -145,96 +104,42 @@ func (h httpBatch) UploadFile(ctx context.Context, projectID, batchUID string, p
 		}
 	}
 
-	requestHeader := make(textproto.MIMEHeader)
-	requestHeader.Set("Content-Disposition", `form-data; name="request"`)
-	requestHeader.Set("Content-Type", "application/json")
-
 	fileHeader := make(textproto.MIMEHeader)
 	fileHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s"`, payload.Filename))
 	fileHeader.Set("Content-Type", "text/plain")
-
 	filePart, err := writer.CreatePart(fileHeader)
 	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to create file part: %v", err)
+		return UploadFileResponse{}, fmt.Errorf("failed to create file part: %w", err)
 	}
-	_, err = filePart.Write(payload.File)
-	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to write: %v", err)
+	if _, err := filePart.Write(payload.File); err != nil {
+		return UploadFileResponse{}, fmt.Errorf("failed to write file: %w", err)
 	}
-
 	if err := writer.Close(); err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to close writer: %v", err)
+		return UploadFileResponse{}, fmt.Errorf("failed to close writer: %w", err)
 	}
 
-	url := h.client.BaseURL + path
-	h.client.Logger.Debugf(
-		"<- %s %s [payload %d bytes]\n",
-		"POST", url, buf.Len(),
+	_, code, err := h.client.PostJSON(
+		ctx,
+		path,
+		buf.Bytes(),
+		nil,
+		smclient.ContentTypeOption(writer.FormDataContentType()),
 	)
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &buf)
 	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to create request: %v", err)
+		return UploadFileResponse{}, fmt.Errorf("failed to upload file: %w", err)
 	}
-
-	request.Header.Set("Authorization", "Bearer "+h.client.Credentials.AccessToken.Value)
-	request.Header.Set("Content-Type", writer.FormDataContentType())
-	resp, err := h.client.HTTP.Do(request)
-	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("request failed: %v", err)
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			h.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to read response body: %v", err)
-	}
-	h.client.Logger.Debugf("response body: %s\n", body)
-
-	var response uploadFileResponse
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return UploadFileResponse{}, fmt.Errorf("failed to unmarshal: %v", err)
-	}
-
-	return UploadFileResponse{
-		Code: response.Response.Code,
-	}, nil
+	return UploadFileResponse{Code: code}, nil
 }
 
 // GetStatus retrieves the status of a batch in the specified project
-func (h httpBatch) GetStatus(projectID, batchUID string) (GetStatusResponse, error) {
+func (h httpBatch) GetStatus(ctx context.Context, projectID, batchUID string) (GetStatusResponse, error) {
 	url := jobBasePath + projectID + "/batches/" + batchUID
+
 	var response getStatusResponse
-	rawMessage, code, err := h.client.Get(url, nil)
+	_, code, err := h.client.GetJSON(ctx, url, nil, &response.Response.Data)
 	if err != nil {
-		return GetStatusResponse{}, err
+		return GetStatusResponse{}, fmt.Errorf("failed to get batch status: %w", err)
 	}
-	defer func() {
-		if err := rawMessage.Close(); err != nil {
-			h.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	if code != 200 {
-		body, err := io.ReadAll(rawMessage)
-		if err != nil {
-			h.client.Logger.Debugf("failed to read response body: %v", err)
-		}
-		return GetStatusResponse{}, fmt.Errorf("unexpected response code: %d with %s", code, body)
-	}
-	body, err := io.ReadAll(rawMessage)
-	if err != nil {
-		return GetStatusResponse{}, smerror.APIError{
-			Cause:   err,
-			URL:     url,
-			Payload: []byte(fmt.Sprintf("%v", rawMessage)),
-		}
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return GetStatusResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
+	response.Response.Code = code
 	return toGetStatusResponse(response), nil
 }

@@ -91,7 +91,7 @@ func TestFileStatusTranslation_ProgressPercent(t *testing.T) {
 			wantProgressPercent: 99,
 		},
 		{
-			name:             "Log error, totalStringCount must be greater than 0",
+			name:             "Return error, totalStringCount must be greater than 0",
 			totalStringCount: 0,
 			given: FileStatusTranslation{
 				AuthorizedStringCount: 0,

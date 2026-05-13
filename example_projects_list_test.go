@@ -31,9 +31,11 @@
 package smartling_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 
 	sdk "github.com/Smartling/api-sdk-go"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -42,7 +44,7 @@ import (
 func ExampleHttpAPIClient_ListProjects() {
 	log.Printf("Initializing smartling client and performing autorization")
 
-	client := sdk.NewHttpAPIClient(UserID, TokenSecret)
+	client := sdk.NewHttpAPIClient(&http.Client{}, UserID, TokenSecret)
 
 	log.Printf("Listing projects for account ID %v:", AccountID)
 
@@ -52,7 +54,9 @@ func ExampleHttpAPIClient_ListProjects() {
 		IncludeArchived:   false,
 	}
 
-	projects, err := client.ListProjects(AccountID, listRequest)
+	ctx := context.Background()
+
+	projects, err := client.ListProjects(ctx, AccountID, listRequest)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -64,7 +68,7 @@ func ExampleHttpAPIClient_ListProjects() {
 	)
 
 	for _, project := range projects.Items {
-		projectDetails, err := client.GetProjectDetails(project.ProjectID)
+		projectDetails, err := client.GetProjectDetails(ctx, project.ProjectID)
 		if err != nil {
 			log.Fatal(err)
 			return

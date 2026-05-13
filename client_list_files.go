@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_error"
@@ -44,12 +45,14 @@ type FilesList struct {
 // Returned result is paginated, so check out TotalCount struct field in the
 // reply. API can return only 500 files at once.
 func (c *HttpAPIClient) ListFiles(
+	ctx context.Context,
 	projectID string,
 	request smfile.FilesListRequest,
 ) (*FilesList, error) {
 	var list FilesList
 
 	_, _, err := c.Client.GetJSON(
+		ctx,
 		fmt.Sprintf(endpointFilesList, projectID),
 		request.GetQuery(),
 		&list,
@@ -68,13 +71,14 @@ func (c *HttpAPIClient) ListFiles(
 // ListAllFiles returns all files by request, even if it requires several API
 // calls.
 func (c *HttpAPIClient) ListAllFiles(
+	ctx context.Context,
 	projectID string,
 	request smfile.FilesListRequest,
 ) ([]smfile.File, error) {
 	var result []smfile.File
 
 	for {
-		files, err := c.ListFiles(projectID, request)
+		files, err := c.ListFiles(ctx, projectID, request)
 		if err != nil {
 			return nil, err
 		}

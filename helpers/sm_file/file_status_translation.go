@@ -42,11 +42,9 @@ func (fst FileStatusTranslation) ProgressPercent(totalStringCount int) (int, err
 	if totalStringCount == 0 {
 		return 0, ErrZeroTotalStringCount
 	}
-	if (totalStringCount - fst.ExcludedStringCount) == 0 {
+	total := totalStringCount - fst.ExcludedStringCount
+	if total == 0 {
 		return 100, nil
 	}
-	if total := totalStringCount - fst.ExcludedStringCount; total != 0 {
-		return int(100 * float64(fst.CompletedStringCount) / float64(total)), nil
-	}
-	return 100, nil
+	return int(100 * float64(fst.CompletedStringCount) / float64(total)), nil
 }

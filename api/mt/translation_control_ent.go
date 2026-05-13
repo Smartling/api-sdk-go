@@ -2,12 +2,12 @@ package mt
 
 // CancelTranslationResponse defines cancel translation response
 type CancelTranslationResponse struct {
-	Code string
+	Code int
 }
 
 type cancelTranslationResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 		} `json:"data"`
 	} `json:"response"`
@@ -21,13 +21,13 @@ func toCancelTranslationResponse(r cancelTranslationResponse) CancelTranslationR
 
 // DetectFileLanguageResponse defines detect file language response
 type DetectFileLanguageResponse struct {
-	Code                 string
+	Code                 int
 	LanguageDetectionUID string
 }
 
 type detectFileLanguageResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			LanguageDetectionUID string `json:"languageDetectionUid"`
 		} `json:"data"`
@@ -43,7 +43,7 @@ func toDetectFileLanguageResponse(r detectFileLanguageResponse) DetectFileLangua
 
 // DetectionProgressResponse defines detection progress response
 type DetectionProgressResponse struct {
-	Code                    string
+	Code                    int
 	State                   string
 	Error                   string
 	DetectedSourceLanguages []DetectedSourceLanguage
@@ -56,7 +56,7 @@ type DetectedSourceLanguage struct {
 }
 type detectionProgressResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			State                   string  `json:"state"`
 			Error                   *string `json:"error"`

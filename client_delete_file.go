@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
@@ -32,6 +33,7 @@ const (
 
 // DeleteFile removes specified files from project.
 func (c *HttpAPIClient) DeleteFile(
+	ctx context.Context,
 	projectID string,
 	uri string,
 ) error {
@@ -50,6 +52,7 @@ func (c *HttpAPIClient) DeleteFile(
 	}
 
 	_, _, err = c.Client.PostJSON(
+		ctx,
 		fmt.Sprintf(endpointFileDelete, projectID),
 		form.Bytes(),
 		nil,

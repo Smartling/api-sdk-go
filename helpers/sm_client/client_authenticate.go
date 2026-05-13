@@ -20,6 +20,7 @@
 package smclient
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -34,7 +35,7 @@ const (
 
 // Authenticate checks that access and refresh tokens are valid and refreshes
 // them if needed.
-func (c *Client) Authenticate() error {
+func (c *Client) Authenticate(ctx context.Context) error {
 	if c.Credentials.AccessToken.IsSafe() {
 		return nil
 	}
@@ -83,7 +84,7 @@ func (c *Client) Authenticate() error {
 		RefreshExpiresIn time.Duration
 	}
 
-	_, _, err = c.PostJSON(url, payload, &response, WithoutAuthentication)
+	_, _, err = c.PostJSON(ctx, url, payload, &response, WithoutAuthentication)
 	if err != nil {
 		if _, ok := err.(smartling.NotAuthorizedError); ok {
 			return err

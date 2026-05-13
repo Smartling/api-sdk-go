@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -27,13 +28,15 @@ import (
 
 // ListFileTypes returns file types list from specified project.
 func (c *HttpAPIClient) ListFileTypes(
+	ctx context.Context,
 	projectID string,
 ) ([]smfile.FileType, error) {
 	var result struct {
 		Items []smfile.FileType
 	}
 
-	_, _, err := c.Client.Get(
+	_, _, err := c.Client.GetJSON(
+		ctx,
 		fmt.Sprintf(endpointFileTypes, projectID),
 		nil,
 		&result,

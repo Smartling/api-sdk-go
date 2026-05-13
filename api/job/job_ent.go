@@ -2,12 +2,13 @@ package job
 
 // GetJobResponse defines get job response
 type GetJobResponse struct {
+	Code              int
 	TranslationJobUID string
 	JobName           string
 }
 type getJobResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			JobName           string `json:"jobName"`
 			TranslationJobUID string `json:"translationJobUid"`
@@ -17,6 +18,7 @@ type getJobResponse struct {
 
 func toGetJobResponse(r getJobResponse) GetJobResponse {
 	return GetJobResponse{
+		Code:              r.Response.Code,
 		TranslationJobUID: r.Response.Data.TranslationJobUID,
 		JobName:           r.Response.Data.JobName,
 	}

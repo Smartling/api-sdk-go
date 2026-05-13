@@ -20,8 +20,10 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"net/http"
 )
 
 const (
@@ -31,17 +33,25 @@ const (
 // DownloadTranslation downloads specified translated file for specified
 // locale.  Check FileDownloadRequest for more options.
 func (c *HttpAPIClient) DownloadTranslation(
+	ctx context.Context,
 	projectID string,
 	localeID string,
 	request FileDownloadRequest,
 ) (io.ReadCloser, error) {
-	reader, _, err := c.Client.Get(
+	reader, code, err := c.Client.Get(
+		ctx,
 		fmt.Sprintf(endpointDownloadTranslation, projectID, localeID),
 		request.GetQuery(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download translated file: %w", err)
 	}
-
+	if code != http.StatusOK {
+		body, _ := io.ReadAll(reader)
+		if err := reader.Close(); err != nil {
+			c.Client.Logger.Debugf("failed to close response body: %v", err)
+		}
+		return nil, fmt.Errorf("failed to download translated file: unexpected response code %d: %s", code, body)
+	}
 	return reader, nil
 }

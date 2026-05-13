@@ -1,8 +1,10 @@
 package mt
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -10,7 +12,7 @@ import (
 
 // Downloader defines downloader behaviour
 type Downloader interface {
-	File(accountUID AccountUID, fileUID FileUID,
+	File(ctx context.Context, accountUID AccountUID, fileUID FileUID,
 		mtUID MtUID, localeID string) (io.ReadCloser, error)
 }
 
@@ -28,18 +30,25 @@ func newHttpDownloader(base *base) *httpDownloader {
 }
 
 // File downloads file
-func (d httpDownloader) File(accountUID AccountUID, fileUID FileUID,
+func (d httpDownloader) File(ctx context.Context, accountUID AccountUID, fileUID FileUID,
 	mtUID MtUID, localeID string) (io.ReadCloser, error) {
 	filePath := buildFilePath(accountUID, fileUID, mtUID, localeID)
 	path := joinPath(mtBasePath, filePath)
-	reader, _, err := d.base.client.Get(
+	reader, code, err := d.base.client.Get(
+		ctx,
 		path,
 		smfile.FileURIRequest{FileURI: string(fileUID)}.GetQuery(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download original file: %w", err)
 	}
-
+	if code != http.StatusOK {
+		body, _ := io.ReadAll(reader)
+		if err := reader.Close(); err != nil {
+			d.base.client.Logger.Debugf("failed to close response body: %v", err)
+		}
+		return nil, fmt.Errorf("failed to download original file: unexpected response code %d: %s", code, body)
+	}
 	return reader, nil
 }
 

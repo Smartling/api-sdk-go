@@ -20,13 +20,16 @@
 package smartling
 
 import (
+	"context"
+
 	smfile "github.com/Smartling/api-sdk-go/helpers/sm_file"
 )
 
 // UploadFile uploads file
-func (c HttpAPIClient) UploadFile(
+func (c *HttpAPIClient) UploadFile(
+	ctx context.Context,
 	projectID string,
 	request smfile.FileUploadRequest,
 ) (*smfile.FileUploadResult, error) {
-	return c.Client.UploadFile(projectID, request)
+	return c.Client.UploadFile(ctx, projectID, request)
 }

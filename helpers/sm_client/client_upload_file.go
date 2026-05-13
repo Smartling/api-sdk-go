@@ -1,6 +1,7 @@
 package smclient
 
 import (
+	"context"
 	"fmt"
 
 	smfile "github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -12,6 +13,7 @@ const (
 
 // UploadFile uploads file
 func (c *Client) UploadFile(
+	ctx context.Context,
 	projectID string,
 	request smfile.FileUploadRequest,
 ) (*smfile.FileUploadResult, error) {
@@ -28,6 +30,7 @@ func (c *Client) UploadFile(
 	}
 
 	_, _, err = c.PostJSON(
+		ctx,
 		fmt.Sprintf(endpointUploadFile, projectID),
 		form.Bytes(),
 		&result,

@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -31,12 +32,14 @@ const (
 
 // GetFileStatus returns file status.
 func (c *HttpAPIClient) GetFileStatus(
+	ctx context.Context,
 	projectID string,
 	fileURI string,
 ) (*smfile.FileStatus, error) {
 	var status smfile.FileStatus
 
 	_, _, err := c.Client.GetJSON(
+		ctx,
 		fmt.Sprintf(endpointFileStatus, projectID),
 		smfile.FileURIRequest{fileURI}.GetQuery(),
 		&status,
