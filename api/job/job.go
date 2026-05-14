@@ -44,6 +44,10 @@ func (h httpJob) GetJob(ctx context.Context, projectID, translationJobUID string
 
 	var response getJobResponse
 	_, code, err := h.client.GetJSON(ctx, url, nil, &response.Response.Data)
+	if err != nil && code == http.StatusNotFound {
+		return GetJobResponse{}, ErrNotFound
+
+	}
 	if err != nil {
 		return GetJobResponse{}, fmt.Errorf("failed to get job: %w", err)
 	}
