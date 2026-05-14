@@ -32,13 +32,11 @@ type FileLastModifiedRequest struct {
 
 func (request *FileLastModifiedRequest) GetForm() (*sm_form.Form, error) {
 	form, err := request.FileURIRequest.GetForm()
-
 	if err != nil {
 		return nil, err
 	}
 
 	err = form.Writer.WriteField("lastModifiedAfter", request.LastModifiedAfter.String())
-
 	if err != nil {
 		return nil, err
 	}

@@ -4,14 +4,18 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"mime/multipart"
+	"net/http"
 	"net/textproto"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
 
 const jobBasePath = "/job-batches-api/v2/projects/"
+
+var ErrNotFound = errors.New("batch not found")
 
 // Batch defines the batch behaviour
 type Batch interface {
@@ -137,6 +141,9 @@ func (h httpBatch) GetStatus(ctx context.Context, projectID, batchUID string) (G
 
 	var response getStatusResponse
 	_, code, err := h.client.GetJSON(ctx, url, nil, &response.Response.Data)
+	if err != nil && code == http.StatusNotFound {
+		return GetStatusResponse{}, ErrNotFound
+	}
 	if err != nil {
 		return GetStatusResponse{}, fmt.Errorf("failed to get batch status: %w", err)
 	}

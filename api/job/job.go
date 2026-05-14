@@ -2,16 +2,24 @@ package job
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"path"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
 
-const jobBasePath = "/job-batches-api/v2/projects/"
+const jobBasePath = "/jobs-api/v3/projects/"
+
+var ErrNotFound = errors.New("job not found")
 
 // Job defines the job behaviour
 type Job interface {
 	GetJob(ctx context.Context, projectID, translationJobUID string) (GetJobResponse, error)
+	SearchByName(ctx context.Context, projectID, name string) (jobs []GetJobResponse, err error)
+	Progress(ctx context.Context, projectID string, translationJobUID string) (GetJobProgressResponse, error)
 }
 
 // NewJob returns new Job implementation
@@ -30,13 +38,46 @@ func newHttpJob(client *smclient.Client) httpJob {
 
 // GetJob gets a job related info
 func (h httpJob) GetJob(ctx context.Context, projectID, translationJobUID string) (GetJobResponse, error) {
-	url := jobBasePath + projectID + "/jobs/" + translationJobUID
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(translationJobUID))
 
 	var response getJobResponse
-	_, code, err := h.client.GetJSON(ctx, url, nil, &response.Response.Data)
+	_, code, err := h.client.GetJSON(ctx, reqURL, nil, &response.Response.Data)
+	if err != nil && code == http.StatusNotFound {
+		return GetJobResponse{}, ErrNotFound
+	}
 	if err != nil {
 		return GetJobResponse{}, fmt.Errorf("failed to get job: %w", err)
 	}
 	response.Response.Code = code
 	return toGetJobResponse(response), nil
+}
+
+// SearchByName searches all jobs of a project by name
+func (h httpJob) SearchByName(ctx context.Context, projectID, name string) ([]GetJobResponse, error) {
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs")
+
+	params := url.Values{}
+	params.Set("jobName", name)
+
+	var res getJobsResponse
+	_, _, err := h.client.GetJSON(ctx, reqURL, params, &res.Response.Data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jobs: %w", err)
+	}
+	jobs := toGetJobsResponse(res)
+	return jobs, nil
+}
+
+// Progress returns a job related progress
+func (h httpJob) Progress(ctx context.Context, projectID string, translationJobUID string) (GetJobProgressResponse, error) {
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(translationJobUID), "progress")
+	var response getJobProgressResponse
+	_, code, err := h.client.GetJSON(ctx, reqURL, nil, &response.Response.Data)
+	if err != nil && code == http.StatusNotFound {
+		return GetJobProgressResponse{}, ErrNotFound
+	}
+	if err != nil {
+		return GetJobProgressResponse{}, fmt.Errorf("failed to get job progress: %w", err)
+	}
+	return toGetJobProgressResponse(response, translationJobUID)
 }

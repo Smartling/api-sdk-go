@@ -56,7 +56,7 @@ const (
 	RetrieveChromeInstrumented = "contextMatchingInstrumented"
 )
 
-// FileDownloadRequest represents optional parameters for a file download operation.
+// FileDownloadRequest represents optional parameters for file download operation.
 //
 // See: https://api-reference.smartling.com/#tag/Files/operation/downloadTranslatedFile
 type FileDownloadRequest struct {

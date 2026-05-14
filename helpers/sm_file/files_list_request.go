@@ -21,8 +21,9 @@ package smfile
 
 import (
 	"fmt"
-	"github.com/Smartling/api-sdk-go/helpers/utc"
 	"net/url"
+
+	"github.com/Smartling/api-sdk-go/helpers/utc"
 )
 
 // FilesListRequest represents request used to filter files returned by
