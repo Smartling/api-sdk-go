@@ -10,7 +10,7 @@ type GetJobProgressResponse struct {
 	TranslationJobUID string
 	TotalWordCount    uint32
 	PercentComplete   float64
-	Json              json.RawMessage
+	JSON              json.RawMessage
 }
 type getJobProgressResponse struct {
 	Response struct {
@@ -18,11 +18,11 @@ type getJobProgressResponse struct {
 		Data struct {
 			ContentProgressReport []struct {
 				Progress struct {
-					PercentComplete int `json:"percentComplete"`
-					TotalWordCount  int `json:"totalWordCount"`
+					PercentComplete float64 `json:"percentComplete"`
+					TotalWordCount  int     `json:"totalWordCount"`
 				} `json:"progress"`
 				TargetLocaleDescription    string `json:"targetLocaleDescription"`
-				TargetLocaleId             string `json:"targetLocaleId"`
+				TargetLocaleID             string `json:"targetLocaleId"`
 				UnauthorizedProgressReport struct {
 					StringCount int `json:"stringCount"`
 					WordCount   int `json:"wordCount"`
@@ -36,7 +36,7 @@ type getJobProgressResponse struct {
 						WorkflowStepType string `json:"workflowStepType"`
 						WorkflowStepUid  string `json:"workflowStepUid"`
 					} `json:"workflowStepSummaryReportItemList"`
-					WorkflowUid string `json:"workflowUid"`
+					WorkflowUID string `json:"workflowUid"`
 				} `json:"workflowProgressReportList"`
 			} `json:"contentProgressReport"`
 			Progress struct {
@@ -61,6 +61,6 @@ func toGetJobProgressResponse(r getJobProgressResponse, translationJobUID string
 		TranslationJobUID: translationJobUID,
 		TotalWordCount:    r.Response.Data.Progress.TotalWordCount,
 		PercentComplete:   r.Response.Data.Progress.PercentComplete,
-		Json:              data,
+		JSON:              data,
 	}, nil
 }

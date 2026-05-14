@@ -2,10 +2,8 @@ package job
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -40,13 +38,12 @@ func newHttpJob(client *smclient.Client) httpJob {
 
 // GetJob gets a job related info
 func (h httpJob) GetJob(ctx context.Context, projectID, translationJobUID string) (GetJobResponse, error) {
-	url := jobBasePath + projectID + "/jobs/" + translationJobUID
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(translationJobUID))
 
 	var response getJobResponse
-	_, code, err := h.client.GetJSON(ctx, url, nil, &response.Response.Data)
+	_, code, err := h.client.GetJSON(ctx, reqURL, nil, &response.Response.Data)
 	if err != nil && code == http.StatusNotFound {
 		return GetJobResponse{}, ErrNotFound
-
 	}
 	if err != nil {
 		return GetJobResponse{}, fmt.Errorf("failed to get job: %w", err)
@@ -62,28 +59,12 @@ func (h httpJob) SearchByName(ctx context.Context, projectID, name string) ([]Ge
 	params := url.Values{}
 	params.Set("jobName", name)
 
-	rawMessage, code, err := h.client.Get(ctx, reqURL, params)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := rawMessage.Close(); err != nil {
-			h.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	body, readErr := io.ReadAll(rawMessage)
-	if code != http.StatusOK {
-		if readErr != nil {
-			return nil, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", code, body, readErr)
-		}
-		return nil, fmt.Errorf("unexpected response code: %d, body: %s", code, body)
-	}
 	var res getJobsResponse
-	if err := json.Unmarshal(body, &res); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	_, _, err := h.client.GetJSON(ctx, reqURL, params, &res.Response.Data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jobs: %w", err)
 	}
 	jobs := toGetJobsResponse(res)
-
 	return jobs, nil
 }
 
@@ -91,25 +72,12 @@ func (h httpJob) SearchByName(ctx context.Context, projectID, name string) ([]Ge
 func (h httpJob) Progress(ctx context.Context, projectID string, translationJobUID string) (GetJobProgressResponse, error) {
 	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(translationJobUID), "progress")
 	var response getJobProgressResponse
-	rawMessage, code, err := h.client.Get(ctx, reqURL, nil)
+	_, code, err := h.client.GetJSON(ctx, reqURL, nil, &response.Response.Data)
+	if err != nil && code == http.StatusNotFound {
+		return GetJobProgressResponse{}, ErrNotFound
+	}
 	if err != nil {
-		return GetJobProgressResponse{}, err
-	}
-	defer func() {
-		if err := rawMessage.Close(); err != nil {
-			h.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	body, err := io.ReadAll(rawMessage)
-	if err != nil {
-		return GetJobProgressResponse{}, fmt.Errorf("failed to read response body: %w", err)
-	}
-	if code != 200 {
-		h.client.Logger.Debugf("response body: %s\n", body)
-		return GetJobProgressResponse{}, fmt.Errorf("unexpected response code: %d", code)
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return GetJobProgressResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
+		return GetJobProgressResponse{}, fmt.Errorf("failed to get job progress: %w", err)
 	}
 	return toGetJobProgressResponse(response, translationJobUID)
 }
