@@ -2,10 +2,15 @@ package job
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"path"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
-	"github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
 
 const jobBasePath = "/jobs-api/v3/projects/"
@@ -15,8 +20,8 @@ var ErrNotFound = errors.New("job not found")
 // Job defines the job behaviour
 type Job interface {
 	GetJob(ctx context.Context, projectID, translationJobUID string) (GetJobResponse, error)
-	SearchByName(projectID, name string) (jobs []GetJobResponse, err error)
-	Progress(projectID string, translationJobUID string) (GetJobProgressResponse, error)
+	SearchByName(ctx context.Context, projectID, name string) (jobs []GetJobResponse, err error)
+	Progress(ctx context.Context, projectID string, translationJobUID string) (GetJobProgressResponse, error)
 }
 
 // NewJob returns new Job implementation
@@ -46,15 +51,14 @@ func (h httpJob) GetJob(ctx context.Context, projectID, translationJobUID string
 	return toGetJobResponse(response), nil
 }
 
-
-// GetAllByName gets all jobs of a project by name
-func (h httpJob) SearchByName(projectID, name string) ([]GetJobResponse, error) {
+// SearchByName searches all jobs of a project by name
+func (h httpJob) SearchByName(ctx context.Context, projectID, name string) ([]GetJobResponse, error) {
 	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs")
 
 	params := url.Values{}
 	params.Set("jobName", name)
 
-	rawMessage, code, err := h.client.Get(reqURL, params)
+	rawMessage, code, err := h.client.Get(ctx, reqURL, params)
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +84,10 @@ func (h httpJob) SearchByName(projectID, name string) ([]GetJobResponse, error) 
 }
 
 // Progress returns a job related progress
-func (h httpJob) Progress(projectID string, translationJobUID string) (GetJobProgressResponse, error) {
+func (h httpJob) Progress(ctx context.Context, projectID string, translationJobUID string) (GetJobProgressResponse, error) {
 	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(translationJobUID), "progress")
 	var response getJobProgressResponse
-	rawMessage, code, err := h.client.Get(reqURL, nil)
+	rawMessage, code, err := h.client.Get(ctx, reqURL, nil)
 	if err != nil {
 		return GetJobProgressResponse{}, err
 	}

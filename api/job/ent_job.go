@@ -2,6 +2,7 @@ package job
 
 // GetJobResponse defines get job response
 type GetJobResponse struct {
+	Code              int
 	TranslationJobUID string
 	JobName           string
 }
@@ -18,13 +19,22 @@ func FindFirstJobByName(jobs []GetJobResponse, name string) (GetJobResponse, boo
 
 type getJobResponse struct {
 	Response struct {
-		Code string `json:"code"`
+		Code int
 		Data struct {
 			JobName           string `json:"jobName"`
 			TranslationJobUID string `json:"translationJobUid"`
 		} `json:"data"`
 	} `json:"response"`
 }
+
+func toGetJobResponse(r getJobResponse) GetJobResponse {
+	return GetJobResponse{
+		Code:              r.Response.Code,
+		TranslationJobUID: r.Response.Data.TranslationJobUID,
+		JobName:           r.Response.Data.JobName,
+	}
+}
+
 type getJobsResponse struct {
 	Response struct {
 		Code string `json:"code"`
@@ -35,13 +45,6 @@ type getJobsResponse struct {
 			} `json:"items"`
 		} `json:"data"`
 	} `json:"response"`
-}
-
-func toGetJobResponse(r getJobResponse) GetJobResponse {
-	return GetJobResponse{
-		TranslationJobUID: r.Response.Data.TranslationJobUID,
-		JobName:           r.Response.Data.JobName,
-	}
 }
 
 func toGetJobsResponse(r getJobsResponse) []GetJobResponse {
