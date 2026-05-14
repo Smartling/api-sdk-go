@@ -60,9 +60,7 @@ const (
 // operation.
 type FileDownloadRequest struct {
 	smfile.FileURIRequest
-
 	Type RetrievalType
-
 	// IncludeOriginal controls the "includeOriginalStrings" query parameter.
 	// If nil, the parameter is omitted and the API defaults to including untranslated strings. .
 	IncludeOriginal *bool

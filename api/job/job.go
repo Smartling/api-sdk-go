@@ -1,13 +1,8 @@
 package job
 
 import (
-	"encoding/json"
-	"errors"
+	"context"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	"path"
 
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_error"
@@ -19,7 +14,7 @@ var ErrNotFound = errors.New("job not found")
 
 // Job defines the job behaviour
 type Job interface {
-	Get(projectID string, translationJobUID string) (GetJobResponse, error)
+	GetJob(ctx context.Context, projectID, translationJobUID string) (GetJobResponse, error)
 	SearchByName(projectID, name string) (jobs []GetJobResponse, err error)
 	Progress(projectID string, translationJobUID string) (GetJobProgressResponse, error)
 }
@@ -38,34 +33,19 @@ func newHttpJob(client *smclient.Client) httpJob {
 	return httpJob{client: client}
 }
 
-// Get gets a job related info
-func (h httpJob) Get(projectID string, translationJobUID string) (GetJobResponse, error) {
-	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(translationJobUID))
+// GetJob gets a job related info
+func (h httpJob) GetJob(ctx context.Context, projectID, translationJobUID string) (GetJobResponse, error) {
+	url := jobBasePath + projectID + "/jobs/" + translationJobUID
+
 	var response getJobResponse
-	rawMessage, code, err := h.client.Get(reqURL, nil)
+	_, code, err := h.client.GetJSON(ctx, url, nil, &response.Response.Data)
 	if err != nil {
-		if _, ok := err.(smerror.NotFoundError); ok {
-			return GetJobResponse{}, ErrNotFound
-		}
-		return GetJobResponse{}, err
+		return GetJobResponse{}, fmt.Errorf("failed to get job: %w", err)
 	}
-	defer func() {
-		if err := rawMessage.Close(); err != nil {
-			h.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	body, readErr := io.ReadAll(rawMessage)
-	if code != http.StatusOK {
-		if readErr != nil {
-			return GetJobResponse{}, fmt.Errorf("unexpected response code: %d, body: %s, readErr: %v", code, body, readErr)
-		}
-		return GetJobResponse{}, fmt.Errorf("unexpected response code: %d, body: %s", code, body)
-	}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return GetJobResponse{}, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
+	response.Response.Code = code
 	return toGetJobResponse(response), nil
 }
+
 
 // GetAllByName gets all jobs of a project by name
 func (h httpJob) SearchByName(projectID, name string) ([]GetJobResponse, error) {

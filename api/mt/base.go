@@ -16,8 +16,7 @@ const (
 )
 
 var (
-	mtBasePath                 = "/file-translations-api/v2/"
-	contentTypeApplicationJson = "Content-Type:application/json"
+	mtBasePath = "/file-translations-api/v2/"
 )
 
 type base struct {

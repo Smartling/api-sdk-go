@@ -58,7 +58,7 @@ func (r *FileUploadRequest) GetForm() (*sm_form.Form, error) {
 		return nil, err
 	}
 
-	if r.Authorize {
+	if r.Authorize || len(r.LocalesToAuthorize) > 0 {
 		if err := form.Writer.WriteField("authorize", "true"); err != nil {
 			return nil, err
 		}

@@ -19,8 +19,10 @@
 
 package smartling
 
+import "context"
+
 // Authenticate checks that access and refresh tokens are valid and refreshes
 // them if needed.
-func (c *HttpAPIClient) Authenticate() error {
-	return c.Client.Authenticate()
+func (c *HttpAPIClient) Authenticate(ctx context.Context) error {
+	return c.Client.Authenticate(ctx)
 }

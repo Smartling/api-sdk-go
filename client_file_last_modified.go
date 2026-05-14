@@ -20,6 +20,7 @@
 package smartling
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -30,12 +31,14 @@ const (
 )
 
 func (c *HttpAPIClient) LastModified(
+	ctx context.Context,
 	projectID string,
 	request smfile.FileLastModifiedRequest,
 ) (*smfile.FileLastModifiedLocales, error) {
 	var lastModifiedLocales smfile.FileLastModifiedLocales
 
 	_, _, err := c.Client.GetJSON(
+		ctx,
 		fmt.Sprintf(endpointFilesLastModified, projectID),
 		request.GetQuery(),
 		&lastModifiedLocales,

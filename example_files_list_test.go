@@ -34,8 +34,10 @@
 package smartling_test
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	sdk "github.com/Smartling/api-sdk-go"
@@ -45,7 +47,7 @@ import (
 
 func ExampleHttpAPIClient_ListFiles() {
 	log.Printf("Initializing smartling client and performing autorization")
-	client := sdk.NewHttpAPIClient(UserID, TokenSecret)
+	client := sdk.NewHttpAPIClient(&http.Client{}, UserID, TokenSecret)
 
 	log.Printf("Listing project (%v) files", ProjectID)
 
@@ -61,7 +63,7 @@ func ExampleHttpAPIClient_ListFiles() {
 		FileTypes:          []smfile.FileType{smfile.FileTypeJSON, smfile.FileTypeJavaProperties},
 	}
 
-	files, err := client.ListFiles(ProjectID, listRequest)
+	files, err := client.ListFiles(context.Background(), ProjectID, listRequest)
 	if err != nil {
 		log.Printf("%v", err.Error())
 		return

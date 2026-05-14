@@ -21,6 +21,7 @@ package smclient
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -33,50 +34,55 @@ import (
 )
 
 const (
-	successResponseCode = "success"
-	validationErrorCode = "validation_error"
+	successResponseCode  = "success"
+	acceptedResponseCode = "accepted"
+	validationErrorCode  = "validation_error"
 )
 
 // PostJSON performs POST request to the Smartling API. You probably do not want
 // to use it.
 func (c *Client) PostJSON(
+	ctx context.Context,
 	url string,
 	payload []byte,
 	result any,
 	options ...any,
 ) (json.RawMessage, int, error) {
-	return c.requestJSON("POST", url, nil, payload, result, options...)
+	return c.requestJSON(ctx, "POST", url, nil, payload, result, options...)
 }
 
 // Post performs POST request to the Smartling API. You probably do not want
 // to use it.
 func (c *Client) Post(
+	ctx context.Context,
 	url string,
 	payload []byte,
 	options ...any,
 ) (*http.Response, error) {
-	return c.request("POST", url, nil, payload, options...)
+	return c.request(ctx, "POST", url, nil, payload, options...)
 }
 
 // GetJSON performs GET request to the smartling API and tries to decode answer
 // as JSON.
 func (c *Client) GetJSON(
+	ctx context.Context,
 	url string,
 	params url.Values,
 	result any,
 	options ...any,
 ) (json.RawMessage, int, error) {
-	return c.requestJSON("GET", url, params, nil, result, options...)
+	return c.requestJSON(ctx, "GET", url, params, nil, result, options...)
 }
 
 // Get performs raw GET request to the Smartling API. You probably do not want
 // to use it.
 func (c *Client) Get(
+	ctx context.Context,
 	url string,
 	params url.Values,
 	options ...any,
 ) (io.ReadCloser, int, error) {
-	reply, err := c.request("GET", url, params, nil, options...)
+	reply, err := c.request(ctx, "GET", url, params, nil, options...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -85,6 +91,7 @@ func (c *Client) Get(
 }
 
 func (c *Client) request(
+	ctx context.Context,
 	method string,
 	url string,
 	params url.Values,
@@ -107,7 +114,7 @@ func (c *Client) request(
 	}
 
 	if authenticate {
-		err := c.Authenticate()
+		err := c.Authenticate(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("unable to authenticate: %w", err)
 		}
@@ -139,7 +146,8 @@ func (c *Client) request(
 		url += "?" + params.Encode()
 	}
 
-	request, err := http.NewRequest(
+	request, err := http.NewRequestWithContext(
+		ctx,
 		method,
 		c.BaseURL+url,
 		bytes.NewBuffer(payload),
@@ -176,6 +184,7 @@ func (c *Client) request(
 }
 
 func (c *Client) requestJSON(
+	ctx context.Context,
 	method string,
 	url string,
 	params url.Values,
@@ -183,7 +192,7 @@ func (c *Client) requestJSON(
 	result any,
 	options ...any,
 ) (json.RawMessage, int, error) {
-	reply, err := c.request(method, url, params, payload, options...)
+	reply, err := c.request(ctx, method, url, params, payload, options...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -196,12 +205,19 @@ func (c *Client) requestJSON(
 
 	code := reply.StatusCode
 
+	// Only surface the request payload in error messages when it's JSON.
+	// Multipart/binary bodies (file uploads) would dump unreadable bytes.
+	errPayload := payload
+	if reply.Request != nil && !strings.HasPrefix(reply.Request.Header.Get("Content-Type"), "application/json") {
+		errPayload = nil
+	}
+
 	body, err := io.ReadAll(reply.Body)
 	if err != nil {
 		return nil, code, smerror.APIError{
 			Cause:   err,
 			URL:     url,
-			Payload: payload,
+			Payload: errPayload,
 		}
 	}
 
@@ -237,7 +253,7 @@ func (c *Client) requestJSON(
 		)
 	}
 
-	if code != 200 {
+	if code != http.StatusOK {
 		switch code {
 		case 202:
 			// ok
@@ -267,16 +283,18 @@ func (c *Client) requestJSON(
 		}
 	}
 
-	if strings.ToLower(response.Response.Code) != successResponseCode {
-		return nil, 0, smerror.APIError{
+	envelopeCode := strings.ToLower(response.Response.Code)
+	if envelopeCode != successResponseCode && envelopeCode != acceptedResponseCode {
+		return nil, code, smerror.APIError{
 			Cause: fmt.Errorf(
-				`unexpected response status (expected "%s"): %#v`,
+				`unexpected response status (expected %q or %q): %#v`,
 				successResponseCode,
+				acceptedResponseCode,
 				response.Response.Code,
 			),
 			URL:      url,
 			Params:   params,
-			Payload:  payload,
+			Payload:  errPayload,
 			Response: body,
 			Headers:  &reply.Header,
 		}
@@ -288,11 +306,11 @@ func (c *Client) requestJSON(
 
 	err = json.Unmarshal(response.Response.Data, result)
 	if err != nil {
-		return nil, 0, smerror.APIError{
+		return nil, code, smerror.APIError{
 			Cause:    fmt.Errorf("unable to decode API response data: %w", err),
 			URL:      url,
 			Params:   params,
-			Payload:  payload,
+			Payload:  errPayload,
 			Response: body,
 			Headers:  &reply.Header,
 		}

@@ -1,9 +1,21 @@
 package mt
 
+import "fmt"
+
 // Type is type for MT file types
 //
 //go:generate stringer -type=Type -output=file_types_string.go
 type Type uint8
+
+// MarshalText returns the stringer name so encoding/json (and any other
+// encoding.TextMarshaler-aware encoder) emits the API-expected string form
+// like "PLAIN_TEXT" instead of the raw uint8 value.
+func (t Type) MarshalText() ([]byte, error) {
+	if t < FirstType || t > LastType {
+		return nil, fmt.Errorf("mt: invalid file Type value %d", t)
+	}
+	return []byte(t.String()), nil
+}
 
 const (
 	DOCX Type = iota + 1

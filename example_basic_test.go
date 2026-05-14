@@ -22,7 +22,9 @@
 package smartling_test
 
 import (
+	"context"
 	"log"
+	"net/http"
 	"time"
 
 	sdk "github.com/Smartling/api-sdk-go"
@@ -37,9 +39,11 @@ func ExampleHttpAPIClient_basic() {
 		projectId   = ""
 	)
 
+	ctx := context.Background()
+
 	log.Printf("Initializing sdk client and performing autorization")
 
-	client := sdk.NewHttpAPIClient(userID, TokenSecret)
+	client := sdk.NewHttpAPIClient(&http.Client{}, userID, TokenSecret)
 
 	log.Printf("Listing projects:")
 
@@ -49,7 +53,7 @@ func ExampleHttpAPIClient_basic() {
 		IncludeArchived:   false,
 	}
 
-	projects, err := client.ListProjects(accountId, listRequest)
+	projects, err := client.ListProjects(ctx, accountId, listRequest)
 	if err != nil {
 		log.Printf("%v", err.Error())
 		return
@@ -59,7 +63,7 @@ func ExampleHttpAPIClient_basic() {
 	log.Printf("Projects belonging to user account:")
 	log.Printf("%+v", projects)
 
-	projectDetails, err := client.GetProjectDetails(projectId)
+	projectDetails, err := client.GetProjectDetails(ctx, projectId)
 	if err != nil {
 		log.Printf("%v", err.Error())
 		return
@@ -71,7 +75,7 @@ func ExampleHttpAPIClient_basic() {
 	for {
 		// sleep 6 minutes to issue reauth call
 		time.Sleep(time.Minute * 6)
-		_, err = client.ListProjects(accountId, listRequest)
+		_, err = client.ListProjects(ctx, accountId, listRequest)
 		if err != nil {
 			log.Printf("%v", err.Error())
 			return

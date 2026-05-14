@@ -1,10 +1,9 @@
 package mt
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
@@ -12,8 +11,8 @@ import (
 
 // FileTranslator defines file behaviour
 type FileTranslator interface {
-	Start(accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error)
-	Progress(accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error)
+	Start(ctx context.Context, accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error)
+	Progress(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error)
 }
 
 // NewFileTranslator returns new FileTranslator implementation
@@ -31,65 +30,39 @@ type StartParams struct {
 }
 
 // Start starts file translation
-func (h httpFileTranslator) Start(accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error) {
-	startPath := buildStartPath(accountUID, fileUID)
-	path := joinPath(mtBasePath, startPath)
+func (h httpFileTranslator) Start(ctx context.Context, accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error) {
+	path := joinPath(mtBasePath, buildStartPath(accountUID, fileUID))
 
 	payload, err := json.Marshal(p)
 	if err != nil {
-		return StartResponse{}, err
+		return StartResponse{}, fmt.Errorf("failed to marshal start params: %w", err)
 	}
 
-	resp, err := h.base.client.Post(path, payload)
+	var response startResponse
+	_, code, err := h.base.client.PostJSON(ctx, path, payload, &response.Response.Data)
 	if err != nil {
 		return StartResponse{}, fmt.Errorf("failed to start file translation: %w", err)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			h.base.client.Logger.Debugf("failed to close response body: %v", err)
-		}
-	}()
-	if resp.StatusCode != http.StatusOK {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			h.base.client.Logger.Debugf("failed to read response body: %v", err)
-		}
-		return StartResponse{}, fmt.Errorf("unexpected response code: %d, body: %s", resp.StatusCode, body)
-	}
-	type startResponse struct {
-		Response struct {
-			Code string `json:"code"`
-			Data struct {
-				MtUID string `json:"mtUid"`
-			} `json:"data"`
-		} `json:"response"`
-	}
-	var res startResponse
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return StartResponse{}, fmt.Errorf("failed to parse response: %w", err)
-	}
-	h.base.client.Logger.Debugf("response body: %v\n", res)
-	return StartResponse{
-		Code:  res.Response.Code,
-		MtUID: MtUID(res.Response.Data.MtUID),
-	}, nil
+	response.Response.Code = code
+	return toStartResponse(response), nil
 }
 
 // Progress return progress of file translation
-func (h httpFileTranslator) Progress(accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error) {
-	var res ProgressResponse
-	progressPath := buildProgressPath(accountUID, fileUID, mtUID)
-	path := joinPath(mtBasePath, progressPath)
-	_, _, err := h.base.client.GetJSON(
+func (h httpFileTranslator) Progress(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error) {
+	path := joinPath(mtBasePath, buildProgressPath(accountUID, fileUID, mtUID))
+
+	var response progressResponse
+	_, code, err := h.base.client.GetJSON(
+		ctx,
 		path,
 		smfile.FileURIRequest{FileURI: string(fileUID)}.GetQuery(),
-		&res,
+		&response.Response.Data,
 	)
 	if err != nil {
 		return ProgressResponse{}, fmt.Errorf("failed to get progress file translation: %w", err)
 	}
-	h.base.client.Logger.Debugf("response body: %v\n", res)
-	return res, nil
+	response.Response.Code = code
+	return toProgressResponse(response), nil
 }
 
 func buildStartPath(accountUID AccountUID, fileUID FileUID) string {
