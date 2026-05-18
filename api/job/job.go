@@ -12,10 +12,7 @@ import (
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
 
-const (
-	jobFilesPageSize = 500
-	jobBasePath      = "/jobs-api/v3/projects/"
-)
+const jobBasePath = "/jobs-api/v3/projects/"
 
 var ErrNotFound = errors.New("job not found")
 
@@ -24,7 +21,7 @@ type Job interface {
 	GetJob(ctx context.Context, projectID, jobUID string) (GetJobResponse, error)
 	SearchByName(ctx context.Context, projectID, name string) (jobs []GetJobResponse, err error)
 	Progress(ctx context.Context, projectID string, jobUID string) (GetJobProgressResponse, error)
-	ListFiles(ctx context.Context, projectID, jobUID string) ([]JobFile, error)
+	ListFiles(ctx context.Context, projectID, jobUID string, limit, offset uint32) (ListJobFilesResponse, error)
 }
 
 // NewJob returns new Job implementation
@@ -73,44 +70,34 @@ func (h httpJob) SearchByName(ctx context.Context, projectID, name string) ([]Ge
 	return jobs, nil
 }
 
-// ListFiles returns every source file attached to a translation job, paging
-// through the API as needed.
-func (h httpJob) ListFiles(ctx context.Context, projectID, jobUID string) ([]JobFile, error) {
+// ListFiles returns a single page of source files attached to a translation job.
+func (h httpJob) ListFiles(ctx context.Context, projectID, jobUID string, limit, offset uint32) (ListJobFilesResponse, error) {
 	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(jobUID), "files")
 
-	var out []JobFile
-	offset := 0
-	for {
-		params := url.Values{}
-		params.Set("limit", strconv.Itoa(jobFilesPageSize))
-		params.Set("offset", strconv.Itoa(offset))
+	params := url.Values{}
+	params.Set("limit", strconv.FormatUint(uint64(limit), 10))
+	params.Set("offset", strconv.FormatUint(uint64(offset), 10))
 
-		var page listJobFilesResponse
-		_, code, err := h.client.GetJSON(ctx, reqURL, params, &page.Response.Data)
-		if err != nil && code == http.StatusNotFound {
-			return nil, ErrNotFound
-		}
-		if err != nil {
-			return nil, fmt.Errorf("failed to list job files: %w", err)
-		}
-
-		if len(page.Response.Data.Items) == 0 {
-			break
-		}
-
-		for _, item := range page.Response.Data.Items {
-			out = append(out, JobFile{
-				FileURI:   item.URI,
-				LocaleIDs: item.LocaleIDs,
-			})
-		}
-
-		offset += len(page.Response.Data.Items)
-		if offset >= page.Response.Data.TotalCount {
-			break
-		}
+	var page listJobFilesResponse
+	_, code, err := h.client.GetJSON(ctx, reqURL, params, &page.Response.Data)
+	if err != nil && code == http.StatusNotFound {
+		return ListJobFilesResponse{}, ErrNotFound
 	}
-	return out, nil
+	if err != nil {
+		return ListJobFilesResponse{}, fmt.Errorf("failed to list job files: %w", err)
+	}
+
+	items := make([]JobFile, 0, len(page.Response.Data.Items))
+	for _, item := range page.Response.Data.Items {
+		items = append(items, JobFile{
+			FileURI:   item.URI,
+			LocaleIDs: item.LocaleIDs,
+		})
+	}
+	return ListJobFilesResponse{
+		Items:      items,
+		TotalCount: page.Response.Data.TotalCount,
+	}, nil
 }
 
 // Progress returns a job related progress

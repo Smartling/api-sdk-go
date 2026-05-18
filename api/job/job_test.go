@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -80,20 +79,23 @@ func equalStringSlices(a, b []string) bool {
 	return true
 }
 
-func TestListFiles_SinglePage(t *testing.T) {
+func TestListFiles_ReturnsPageAndForwardsLimitOffset(t *testing.T) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		if !strings.HasSuffix(r.URL.Path, "/jobs/jobUid-123/files") {
 			t.Errorf("unexpected request path: %s", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("offset"); got != "0" {
-			t.Errorf("offset on first request: got %q, want %q", got, "0")
+		if got := r.URL.Query().Get("offset"); got != "100" {
+			t.Errorf("offset: got %q, want %q", got, "100")
+		}
+		if got := r.URL.Query().Get("limit"); got != "50" {
+			t.Errorf("limit: got %q, want %q", got, "50")
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{
 			"response": {
 				"code": "SUCCESS",
 				"data": {
-					"totalCount": 2,
+					"totalCount": 750,
 					"items": [
 						{"uri": "/path/a.json", "fileUid": "abc123", "localeIds": ["fr-FR"]},
 						{"uri": "/path/b.xml", "fileUid": "def456"}
@@ -105,77 +107,27 @@ func TestListFiles_SinglePage(t *testing.T) {
 
 	j, _ := newTestJob(t, handler)
 
-	files, err := j.ListFiles(context.Background(), "projectId-xyz", "jobUid-123")
+	page, err := j.ListFiles(context.Background(), "projectId-xyz", "jobUid-123", 50, 100)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(files) != 2 {
-		t.Fatalf("len(files) = %d, want 2", len(files))
+	if page.TotalCount != 750 {
+		t.Errorf("TotalCount = %d, want 750", page.TotalCount)
 	}
-	if files[0].FileURI != "/path/a.json" {
-		t.Errorf("files[0].FileURI = %q, want %q", files[0].FileURI, "/path/a.json")
+	if len(page.Items) != 2 {
+		t.Fatalf("len(Items) = %d, want 2", len(page.Items))
 	}
-	if !equalStringSlices(files[0].LocaleIDs, []string{"fr-FR"}) {
-		t.Errorf("files[0].LocaleIDs = %v, want [fr-FR]", files[0].LocaleIDs)
+	if page.Items[0].FileURI != "/path/a.json" {
+		t.Errorf("Items[0].FileURI = %q, want %q", page.Items[0].FileURI, "/path/a.json")
 	}
-	if files[1].FileURI != "/path/b.xml" {
-		t.Errorf("files[1].FileURI = %q, want %q", files[1].FileURI, "/path/b.xml")
+	if !equalStringSlices(page.Items[0].LocaleIDs, []string{"fr-FR"}) {
+		t.Errorf("Items[0].LocaleIDs = %v, want [fr-FR]", page.Items[0].LocaleIDs)
 	}
-	if len(files[1].LocaleIDs) != 0 {
-		t.Errorf("files[1].LocaleIDs = %v, want empty", files[1].LocaleIDs)
+	if page.Items[1].FileURI != "/path/b.xml" {
+		t.Errorf("Items[1].FileURI = %q, want %q", page.Items[1].FileURI, "/path/b.xml")
 	}
-}
-
-func TestListFiles_MultiPage(t *testing.T) {
-	const total = 750
-
-	var pagesServed int
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
-		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-		if limit != 500 {
-			t.Errorf("limit: got %d, want 500", limit)
-		}
-
-		pagesServed++
-
-		count := total - offset
-		if count > limit {
-			count = limit
-		}
-
-		var items strings.Builder
-		for i := 0; i < count; i++ {
-			if i > 0 {
-				items.WriteString(",")
-			}
-			items.WriteString(`{"uri":"/f`)
-			items.WriteString(strconv.Itoa(offset + i))
-			items.WriteString(`.json"}`)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"response":{"code":"SUCCESS","data":{"totalCount":` +
-			strconv.Itoa(total) + `,"items":[` + items.String() + `]}}}`))
-	}
-
-	j, _ := newTestJob(t, handler)
-
-	files, err := j.ListFiles(context.Background(), "p", "j")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(files) != total {
-		t.Fatalf("len(files) = %d, want %d", len(files), total)
-	}
-	if pagesServed != 2 {
-		t.Errorf("pagesServed = %d, want 2 (500 + 250 split)", pagesServed)
-	}
-	if files[0].FileURI != "/f0.json" {
-		t.Errorf("files[0] = %q, want /f0.json", files[0].FileURI)
-	}
-	if files[total-1].FileURI != "/f749.json" {
-		t.Errorf("files[last] = %q, want /f749.json", files[total-1].FileURI)
+	if len(page.Items[1].LocaleIDs) != 0 {
+		t.Errorf("Items[1].LocaleIDs = %v, want empty", page.Items[1].LocaleIDs)
 	}
 }
 
@@ -188,7 +140,7 @@ func TestListFiles_NotFound(t *testing.T) {
 
 	j, _ := newTestJob(t, handler)
 
-	_, err := j.ListFiles(context.Background(), "p", "missing-job")
+	_, err := j.ListFiles(context.Background(), "p", "missing-job", 500, 0)
 	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("err = %v, want ErrNotFound", err)
 	}
@@ -202,12 +154,15 @@ func TestListFiles_Empty(t *testing.T) {
 
 	j, _ := newTestJob(t, handler)
 
-	files, err := j.ListFiles(context.Background(), "p", "j")
+	page, err := j.ListFiles(context.Background(), "p", "j", 500, 0)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if files != nil {
-		t.Errorf("files = %v, want nil", files)
+	if len(page.Items) != 0 {
+		t.Errorf("Items = %v, want empty", page.Items)
+	}
+	if page.TotalCount != 0 {
+		t.Errorf("TotalCount = %d, want 0", page.TotalCount)
 	}
 }
 
@@ -220,7 +175,7 @@ func TestListFiles_ServerError(t *testing.T) {
 
 	j, _ := newTestJob(t, handler)
 
-	_, err := j.ListFiles(context.Background(), "p", "j")
+	_, err := j.ListFiles(context.Background(), "p", "j", 500, 0)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
