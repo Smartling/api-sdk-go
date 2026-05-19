@@ -5,6 +5,7 @@ type GetJobResponse struct {
 	Code              int
 	TranslationJobUID string
 	JobName           string
+	TargetLocaleIDs   []string
 }
 
 // FindFirstJobByName finds the first job by name from the list of jobs
@@ -21,8 +22,9 @@ type getJobResponse struct {
 	Response struct {
 		Code int
 		Data struct {
-			JobName           string `json:"jobName"`
-			TranslationJobUID string `json:"translationJobUid"`
+			JobName           string   `json:"jobName"`
+			TranslationJobUID string   `json:"translationJobUid"`
+			TargetLocaleIDs   []string `json:"targetLocaleIds"`
 		} `json:"data"`
 	} `json:"response"`
 }
@@ -32,6 +34,7 @@ func toGetJobResponse(r getJobResponse) GetJobResponse {
 		Code:              r.Response.Code,
 		TranslationJobUID: r.Response.Data.TranslationJobUID,
 		JobName:           r.Response.Data.JobName,
+		TargetLocaleIDs:   r.Response.Data.TargetLocaleIDs,
 	}
 }
 
