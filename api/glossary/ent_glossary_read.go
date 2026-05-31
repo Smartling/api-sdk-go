@@ -28,7 +28,7 @@ type readGlossaryResponseRow struct {
 }
 
 func toReadGlossaryResponses(r readGlossaryResponse) []ReadGlossaryResponse {
-	res := make([]ReadGlossaryResponse, 0, len(r.Response.Data.Items))
+	res := make([]ReadGlossaryResponse, len(r.Response.Data.Items))
 	for i, item := range r.Response.Data.Items {
 		res[i] = ReadGlossaryResponse{
 			GlossaryUid: item.GlossaryUid,
