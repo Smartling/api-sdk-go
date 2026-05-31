@@ -7,12 +7,13 @@ import (
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
+	"github.com/Smartling/api-sdk-go/helpers/uid"
 )
 
 // FileTranslator defines file behaviour
 type FileTranslator interface {
-	Start(ctx context.Context, accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error)
-	Progress(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error)
+	Start(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID, p StartParams) (StartResponse, error)
+	Progress(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID, mtUID uid.MtUID) (ProgressResponse, error)
 }
 
 // NewFileTranslator returns new FileTranslator implementation
@@ -30,7 +31,7 @@ type StartParams struct {
 }
 
 // Start starts file translation
-func (h httpFileTranslator) Start(ctx context.Context, accountUID AccountUID, fileUID FileUID, p StartParams) (StartResponse, error) {
+func (h httpFileTranslator) Start(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID, p StartParams) (StartResponse, error) {
 	path := joinPath(mtBasePath, buildStartPath(accountUID, fileUID))
 
 	payload, err := json.Marshal(p)
@@ -48,7 +49,7 @@ func (h httpFileTranslator) Start(ctx context.Context, accountUID AccountUID, fi
 }
 
 // Progress return progress of file translation
-func (h httpFileTranslator) Progress(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (ProgressResponse, error) {
+func (h httpFileTranslator) Progress(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID, mtUID uid.MtUID) (ProgressResponse, error) {
 	path := joinPath(mtBasePath, buildProgressPath(accountUID, fileUID, mtUID))
 
 	var response progressResponse
@@ -65,10 +66,10 @@ func (h httpFileTranslator) Progress(ctx context.Context, accountUID AccountUID,
 	return toProgressResponse(response), nil
 }
 
-func buildStartPath(accountUID AccountUID, fileUID FileUID) string {
+func buildStartPath(accountUID uid.AccountUID, fileUID uid.FileUID) string {
 	return "/accounts/" + string(accountUID) + "/files/" + string(fileUID) + "/mt"
 }
 
-func buildProgressPath(accountUID AccountUID, fileUID FileUID, mtUID MtUID) string {
+func buildProgressPath(accountUID uid.AccountUID, fileUID uid.FileUID, mtUID uid.MtUID) string {
 	return "/accounts/" + string(accountUID) + "/files/" + string(fileUID) + "/mt/" + string(mtUID) + "/status"
 }

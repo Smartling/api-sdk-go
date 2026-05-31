@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/uid"
 )
 
 // TranslationControl defines translation control behaviour
 type TranslationControl interface {
-	CancelTranslation(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (CancelTranslationResponse, error)
-	DetectFileLanguage(ctx context.Context, accountUID AccountUID, fileUID FileUID) (DetectFileLanguageResponse, error)
-	DetectionProgress(ctx context.Context, accountUID AccountUID, fileUID FileUID, languageDetectionUID string) (DetectionProgressResponse, error)
+	CancelTranslation(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID, mtUID uid.MtUID) (CancelTranslationResponse, error)
+	DetectFileLanguage(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID) (DetectFileLanguageResponse, error)
+	DetectionProgress(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID, languageDetectionUID string) (DetectionProgressResponse, error)
 }
 
 // NewTranslationControl returns new TranslationControl implementation
@@ -24,7 +25,7 @@ type httpTranslationControl struct {
 }
 
 // CancelTranslation cancels translation
-func (h httpTranslationControl) CancelTranslation(ctx context.Context, accountUID AccountUID, fileUID FileUID, mtUID MtUID) (CancelTranslationResponse, error) {
+func (h httpTranslationControl) CancelTranslation(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID, mtUID uid.MtUID) (CancelTranslationResponse, error) {
 	path := joinPath(mtBasePath, buildCancelTranslationPath(accountUID, fileUID, mtUID))
 	var response cancelTranslationResponse
 	_, code, err := h.base.client.PostJSON(ctx, path, nil, &response.Response.Data)
@@ -36,7 +37,7 @@ func (h httpTranslationControl) CancelTranslation(ctx context.Context, accountUI
 }
 
 // DetectFileLanguage detects file language
-func (h httpTranslationControl) DetectFileLanguage(ctx context.Context, accountUID AccountUID, fileUID FileUID) (DetectFileLanguageResponse, error) {
+func (h httpTranslationControl) DetectFileLanguage(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID) (DetectFileLanguageResponse, error) {
 	path := joinPath(mtBasePath, buildDetectFileLanguagePath(accountUID, fileUID))
 	var response detectFileLanguageResponse
 	_, code, err := h.base.client.PostJSON(ctx, path, nil, &response.Response.Data)
@@ -48,7 +49,7 @@ func (h httpTranslationControl) DetectFileLanguage(ctx context.Context, accountU
 }
 
 // DetectionProgress returns info about detection
-func (h httpTranslationControl) DetectionProgress(ctx context.Context, accountUID AccountUID, fileUID FileUID, languageDetectionUID string) (DetectionProgressResponse, error) {
+func (h httpTranslationControl) DetectionProgress(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID, languageDetectionUID string) (DetectionProgressResponse, error) {
 	path := joinPath(mtBasePath, buildDetectionProgressPath(accountUID, fileUID, languageDetectionUID))
 	var response detectionProgressResponse
 	_, code, err := h.base.client.GetJSON(ctx, path, nil, &response.Response.Data)
@@ -59,14 +60,14 @@ func (h httpTranslationControl) DetectionProgress(ctx context.Context, accountUI
 	return toDetectionProgressResponse(response), nil
 }
 
-func buildCancelTranslationPath(accountUID AccountUID, fileUID FileUID, mtUID MtUID) string {
+func buildCancelTranslationPath(accountUID uid.AccountUID, fileUID uid.FileUID, mtUID uid.MtUID) string {
 	return "/accounts/" + string(accountUID) + "/files/" + string(fileUID) + "/mt/" + string(mtUID) + "/cancel"
 }
 
-func buildDetectFileLanguagePath(accountUID AccountUID, fileUID FileUID) string {
+func buildDetectFileLanguagePath(accountUID uid.AccountUID, fileUID uid.FileUID) string {
 	return "/accounts/" + string(accountUID) + "/files/" + string(fileUID) + "/language-detection"
 }
 
-func buildDetectionProgressPath(accountUID AccountUID, fileUID FileUID, languageDetectionUID string) string {
+func buildDetectionProgressPath(accountUID uid.AccountUID, fileUID uid.FileUID, languageDetectionUID string) string {
 	return "/accounts/" + string(accountUID) + "/files/" + string(fileUID) + "/language-detection/" + languageDetectionUID + "/status"
 }

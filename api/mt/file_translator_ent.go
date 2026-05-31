@@ -1,9 +1,11 @@
 package mt
 
+import "github.com/Smartling/api-sdk-go/helpers/uid"
+
 // StartResponse defines start translation response
 type StartResponse struct {
 	Code  int
-	MtUID MtUID
+	MtUID uid.MtUID
 }
 
 // startResponse defines start translation response as defined in API
@@ -19,7 +21,7 @@ type startResponse struct {
 func toStartResponse(r startResponse) StartResponse {
 	return StartResponse{
 		Code:  r.Response.Code,
-		MtUID: MtUID(r.Response.Data.MtUID),
+		MtUID: uid.MtUID(r.Response.Data.MtUID),
 	}
 }
 

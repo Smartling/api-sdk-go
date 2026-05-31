@@ -8,12 +8,13 @@ import (
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
 	"github.com/Smartling/api-sdk-go/helpers/sm_file"
+	"github.com/Smartling/api-sdk-go/helpers/uid"
 )
 
 // Downloader defines downloader behaviour
 type Downloader interface {
-	File(ctx context.Context, accountUID AccountUID, fileUID FileUID,
-		mtUID MtUID, localeID string) (io.ReadCloser, error)
+	File(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID,
+		mtUID uid.MtUID, localeID string) (io.ReadCloser, error)
 }
 
 // NewDownloader returns new Downloader implementation
@@ -30,8 +31,8 @@ func newHttpDownloader(base *base) *httpDownloader {
 }
 
 // File downloads file
-func (d httpDownloader) File(ctx context.Context, accountUID AccountUID, fileUID FileUID,
-	mtUID MtUID, localeID string) (io.ReadCloser, error) {
+func (d httpDownloader) File(ctx context.Context, accountUID uid.AccountUID, fileUID uid.FileUID,
+	mtUID uid.MtUID, localeID string) (io.ReadCloser, error) {
 	filePath := buildFilePath(accountUID, fileUID, mtUID, localeID)
 	path := joinPath(mtBasePath, filePath)
 	reader, code, err := d.base.client.Get(
@@ -52,6 +53,6 @@ func (d httpDownloader) File(ctx context.Context, accountUID AccountUID, fileUID
 	return reader, nil
 }
 
-func buildFilePath(accountUID AccountUID, fileUID FileUID, mtUID MtUID, localeID string) string {
+func buildFilePath(accountUID uid.AccountUID, fileUID uid.FileUID, mtUID uid.MtUID, localeID string) string {
 	return "/accounts/" + string(accountUID) + "/files/" + string(fileUID) + "/mt/" + string(mtUID) + "/locales/" + localeID + "/file"
 }
