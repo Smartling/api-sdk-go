@@ -49,7 +49,7 @@ func toImportGlossaryResponse(r importGlossary, code int) ImportGlossaryResponse
 			EntriesToArchive:     r.Response.Data.EntryChanges.EntriesToArchive,
 		},
 	}
-	res.TranslationChanges = make([]ImportTranslationChanges, 0, len(r.Response.Data.TranslationChanges))
+	res.TranslationChanges = make([]ImportTranslationChanges, len(r.Response.Data.TranslationChanges))
 	for i, t := range r.Response.Data.TranslationChanges {
 		res.TranslationChanges[i] = ImportTranslationChanges{
 			LocaleID:             t.LocaleId,
@@ -58,7 +58,7 @@ func toImportGlossaryResponse(r importGlossary, code int) ImportGlossaryResponse
 			TranslationsToRemove: t.TranslationsToRemove,
 		}
 	}
-	res.Warnings = make([]ImportWarning, 0, len(r.Response.Data.Warnings))
+	res.Warnings = make([]ImportWarning, len(r.Response.Data.Warnings))
 	for i, w := range r.Response.Data.Warnings {
 		res.Warnings[i] = ImportWarning{Key: w.Key, Message: w.Message}
 	}
