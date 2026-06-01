@@ -7,28 +7,25 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+
+	"github.com/Smartling/api-sdk-go/helpers/uid"
 )
 
 // Get fetches a single glossary by its UID.
 // Endpoint: GET /glossary-api/v3/accounts/{accountUid}/glossaries/{glossaryUid}.
-func (h httpGlossary) Get(ctx context.Context, accountUID, glossaryUID string) (ReadGlossaryResponse, error) {
-	reqURL := path.Join(glossaryBasePath, url.PathEscape(accountUID), "glossaries", url.PathEscape(glossaryUID))
+func (h httpGlossary) Get(ctx context.Context, accountUID uid.AccountUID, glossaryUID string) (GetGlossaryResponse, error) {
+	reqURL := path.Join(glossaryBasePath, url.PathEscape(string(accountUID)), "glossaries", url.PathEscape(glossaryUID))
 
-	var row readGlossaryResponseRow
-	_, code, err := h.client.GetJSON(ctx, reqURL, nil, &row)
+	var response getGlossaryResponse
+	_, code, err := h.client.GetJSON(ctx, reqURL, nil, &response.Response.Data)
 	if err != nil && code == http.StatusNotFound {
-		return ReadGlossaryResponse{}, ErrGlossaryNotFound
+		return GetGlossaryResponse{}, ErrGlossaryNotFound
 	}
 	if err != nil {
-		return ReadGlossaryResponse{}, fmt.Errorf("failed to get glossary: %w", err)
+		return GetGlossaryResponse{}, fmt.Errorf("failed to get glossary: %w", err)
 	}
 
-	return ReadGlossaryResponse{
-		GlossaryUid: row.GlossaryUid,
-		Name:        row.GlossaryName,
-		Description: row.Description,
-		LocaleIDs:   row.LocaleIDs,
-	}, nil
+	return toGetGlossaryResponse(response.Response.Data), nil
 }
 
 // GetByName lists glossaries for the given account, optionally filtered by name.
@@ -36,7 +33,7 @@ func (h httpGlossary) Get(ctx context.Context, accountUID, glossaryUID string) (
 // The Smartling Glossary API exposes listing as a search call: the filter is
 // sent in the JSON body rather than as query parameters. An empty name means
 // "no name filter" and returns all glossaries.
-func (h httpGlossary) GetByName(ctx context.Context, accountUID, name string) ([]ReadGlossaryResponse, error) {
+func (h httpGlossary) GetByName(ctx context.Context, accountUID uid.AccountUID, name string) ([]GetGlossaryResponse, error) {
 	body := struct {
 		Query string `json:"query,omitempty"`
 	}{Query: name}
@@ -46,9 +43,9 @@ func (h httpGlossary) GetByName(ctx context.Context, accountUID, name string) ([
 		return nil, fmt.Errorf("marshal glossary search request: %w", err)
 	}
 
-	reqURL := path.Join(glossaryBasePath, url.PathEscape(accountUID), "glossaries", "search")
+	reqURL := path.Join(glossaryBasePath, url.PathEscape(string(accountUID)), "glossaries", "search")
 
-	var res readGlossaryResponse
+	var res getGlossariesResponse
 	_, code, err := h.client.PostJSON(ctx, reqURL, payload, &res.Response.Data)
 	if err != nil && code == http.StatusNotFound {
 		return nil, ErrGlossaryNotFound
@@ -57,5 +54,5 @@ func (h httpGlossary) GetByName(ctx context.Context, accountUID, name string) ([
 		return nil, fmt.Errorf("failed to list glossaries: %w", err)
 	}
 
-	return toReadGlossaryResponses(res), nil
+	return toReadGlossariesResponse(res), nil
 }

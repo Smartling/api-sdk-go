@@ -1,41 +1,53 @@
 package glossary
 
-// ReadGlossaryResponse is the public representation of a single glossary
-// returned by the list/search endpoint.
-type ReadGlossaryResponse struct {
-	GlossaryUid string
+// GetGlossaryResponse is the public representation of a single glossary.
+type GetGlossaryResponse struct {
+	GlossaryUID string
 	Name        string
 	Description string
 	LocaleIDs   []string
 }
 
-// readGlossaryResponse is the raw envelope returned by the list/search endpoint.
-type readGlossaryResponse struct {
+// getGlossaryResponse is the raw envelope returned by the single-glossary
+// read endpoint (GET .../glossaries/{glossaryUid}); data is the glossary object.
+type getGlossaryResponse struct {
+	Response struct {
+		Code string                  `json:"code"`
+		Data getGlossaryDataResponse `json:"data"`
+	} `json:"response"`
+}
+
+// getGlossariesResponse is the raw envelope returned by the list/search endpoint.
+type getGlossariesResponse struct {
 	Response struct {
 		Code string `json:"code"`
 		Data struct {
 			TotalCount int                       `json:"totalCount"`
-			Items      []readGlossaryResponseRow `json:"items"`
+			Items      []getGlossaryDataResponse `json:"items"`
 		} `json:"data"`
 	} `json:"response"`
 }
 
-type readGlossaryResponseRow struct {
+type getGlossaryDataResponse struct {
 	GlossaryUid  string   `json:"glossaryUid"`
 	GlossaryName string   `json:"glossaryName"`
 	Description  string   `json:"description"`
 	LocaleIDs    []string `json:"localeIds"`
 }
 
-func toReadGlossaryResponses(r readGlossaryResponse) []ReadGlossaryResponse {
-	res := make([]ReadGlossaryResponse, len(r.Response.Data.Items))
+func toGetGlossaryResponse(row getGlossaryDataResponse) GetGlossaryResponse {
+	return GetGlossaryResponse{
+		GlossaryUID: row.GlossaryUid,
+		Name:        row.GlossaryName,
+		Description: row.Description,
+		LocaleIDs:   row.LocaleIDs,
+	}
+}
+
+func toReadGlossariesResponse(r getGlossariesResponse) []GetGlossaryResponse {
+	res := make([]GetGlossaryResponse, len(r.Response.Data.Items))
 	for i, item := range r.Response.Data.Items {
-		res[i] = ReadGlossaryResponse{
-			GlossaryUid: item.GlossaryUid,
-			Name:        item.GlossaryName,
-			Description: item.Description,
-			LocaleIDs:   item.LocaleIDs,
-		}
+		res[i] = toGetGlossaryResponse(item)
 	}
 	return res
 }

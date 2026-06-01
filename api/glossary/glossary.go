@@ -17,8 +17,8 @@ var (
 
 // Glossary defines the glossary behaviour
 type Glossary interface {
-	Get(ctx context.Context, accountUID, glossaryUID string) (ReadGlossaryResponse, error)
-	GetByName(ctx context.Context, accountUID, name string) (glossaries []ReadGlossaryResponse, err error)
+	Get(ctx context.Context, accountUID uid.AccountUID, glossaryUID string) (GetGlossaryResponse, error)
+	GetByName(ctx context.Context, accountUID uid.AccountUID, name string) (glossaries []GetGlossaryResponse, err error)
 	Import(ctx context.Context, accountUID uid.AccountUID, glossaryUID string, req ImportGlossaryRequest) (ImportGlossaryResponse, error)
 	ImportStatus(ctx context.Context, accountUID uid.AccountUID, glossaryUID, importUID string) (ImportStatusResponse, error)
 	ImportConfirm(ctx context.Context, accountUID uid.AccountUID, glossaryUID, importUID string) (bool, error)

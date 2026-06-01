@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"path"
@@ -33,17 +32,17 @@ func (h httpGlossary) Export(ctx context.Context,
 
 	if reply.StatusCode == http.StatusNotFound {
 		if err := reply.Body.Close(); err != nil {
-			log.Printf("failed to close response body: %v", err)
+			h.client.Logger.Infof("failed to close response body: %v", err)
 		}
 		return ExportGlossaryResponse{}, ErrGlossaryNotFound
 	}
 	if reply.StatusCode != http.StatusOK {
 		body, err := io.ReadAll(reply.Body)
 		if err != nil {
-			log.Printf("failed to read response body: %v", err)
+			h.client.Logger.Infof("failed to read response body: %v", err)
 		}
 		if err := reply.Body.Close(); err != nil {
-			log.Printf("failed to close response body: %v", err)
+			h.client.Logger.Infof("failed to close response body: %v", err)
 		}
 		return ExportGlossaryResponse{}, fmt.Errorf(
 			"failed to export glossary: unexpected response code %d: %s",
@@ -55,10 +54,10 @@ func (h httpGlossary) Export(ctx context.Context,
 	if strings.HasPrefix(contentType, "application/json") {
 		body, err := io.ReadAll(reply.Body)
 		if err != nil {
-			log.Printf("failed to read response body: %v", err)
+			h.client.Logger.Infof("failed to read response body: %v", err)
 		}
 		if err := reply.Body.Close(); err != nil {
-			log.Printf("failed to close response body: %v", err)
+			h.client.Logger.Infof("failed to close response body: %v", err)
 		}
 		return ExportGlossaryResponse{}, fmt.Errorf(
 			"failed to export glossary: server returned JSON instead of file: %s",
