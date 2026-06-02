@@ -51,7 +51,7 @@ func (h httpGlossary) Import(ctx context.Context,
 }
 
 // ImportStatus polls the status of a previously submitted glossary import.
-// Endpoint: GET /glossary-api/v3/accounts/{accountUid}/glossaries/{glossaryUid}/imports/{importUid}.
+// Endpoint: GET /glossary-api/v3/accounts/{accountUid}/glossaries/{glossaryUid}/import/{importUid}.
 func (h httpGlossary) ImportStatus(ctx context.Context, accountUID uid.AccountUID, glossaryUID, importUID string) (ImportStatusResponse, error) {
 	reqURL := path.Join(
 		glossaryBasePath,

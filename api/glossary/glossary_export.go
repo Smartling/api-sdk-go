@@ -7,6 +7,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 
@@ -23,7 +24,7 @@ func (h httpGlossary) Export(ctx context.Context,
 		return ExportGlossaryResponse{}, fmt.Errorf("failed to marshal export request: %w", err)
 	}
 
-	reqURL := path.Join(glossaryBasePath, string(accountUID), "glossaries", glossaryUID, "entries", "download")
+	reqURL := path.Join(glossaryBasePath, url.PathEscape(string(accountUID)), "glossaries", url.PathEscape(glossaryUID), "entries", "download")
 
 	reply, err := h.client.Post(ctx, reqURL, payload)
 	if err != nil {
