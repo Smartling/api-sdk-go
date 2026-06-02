@@ -1,12 +1,16 @@
-package mt
+package uid
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/Smartling/api-sdk-go/helpers/sm_error"
+)
 
 type AccountUID string
 
 func (a AccountUID) Validate() error {
 	if strings.TrimSpace(string(a)) == "" {
-		return ErrEmptyParam("AccountUID")
+		return smerror.ErrEmptyParam("AccountUID")
 	}
 	return nil
 }
@@ -15,7 +19,7 @@ type FileUID string
 
 func (f FileUID) Validate() error {
 	if strings.TrimSpace(string(f)) == "" {
-		return ErrEmptyParam("FileUID")
+		return smerror.ErrEmptyParam("FileUID")
 	}
 	return nil
 }
@@ -24,7 +28,7 @@ type MtUID string
 
 func (m MtUID) Validate() error {
 	if strings.TrimSpace(string(m)) == "" {
-		return ErrEmptyParam("MtUID")
+		return smerror.ErrEmptyParam("MtUID")
 	}
 	return nil
 }

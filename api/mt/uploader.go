@@ -9,11 +9,12 @@ import (
 	"net/textproto"
 
 	"github.com/Smartling/api-sdk-go/helpers/sm_client"
+	"github.com/Smartling/api-sdk-go/helpers/uid"
 )
 
 // Uploader defines uploader behaviour
 type Uploader interface {
-	UploadFile(ctx context.Context, accountUID AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error)
+	UploadFile(ctx context.Context, accountUID uid.AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error)
 }
 
 // NewUploader returns new Uploader implementation
@@ -26,7 +27,7 @@ type httpUploader struct {
 }
 
 // UploadFile uploads file
-func (u httpUploader) UploadFile(ctx context.Context, accountUID AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error) {
+func (u httpUploader) UploadFile(ctx context.Context, accountUID uid.AccountUID, filename string, req UploadFileRequest) (UploadFileResponse, error) {
 	filePath := buildUploadFilePath(accountUID)
 	path := joinPath(mtBasePath, filePath)
 
@@ -90,6 +91,6 @@ func (u httpUploader) UploadFile(ctx context.Context, accountUID AccountUID, fil
 	return toUploadFileResponse(response), nil
 }
 
-func buildUploadFilePath(accountUID AccountUID) string {
+func buildUploadFilePath(accountUID uid.AccountUID) string {
 	return "/accounts/" + string(accountUID) + "/files"
 }

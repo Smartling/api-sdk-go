@@ -1,9 +1,11 @@
 package mt
 
+import "github.com/Smartling/api-sdk-go/helpers/uid"
+
 // UploadFileResponse defines upload file response
 type UploadFileResponse struct {
 	Code    int
-	FileUID FileUID
+	FileUID uid.FileUID
 }
 
 // UploadFileRequest defines upload file request
@@ -26,6 +28,6 @@ type uploadFileResponse struct {
 func toUploadFileResponse(r uploadFileResponse) UploadFileResponse {
 	return UploadFileResponse{
 		Code:    r.Response.Code,
-		FileUID: FileUID(r.Response.Data.FileUID),
+		FileUID: uid.FileUID(r.Response.Data.FileUID),
 	}
 }
