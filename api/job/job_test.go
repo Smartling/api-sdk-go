@@ -121,6 +121,24 @@ func TestGetJob_PopulatesDetailFields(t *testing.T) {
 	if resp.Issues.TranslationIssuesCount != 2 {
 		t.Errorf("Issues.TranslationIssuesCount = %d, want 2", resp.Issues.TranslationIssuesCount)
 	}
+	wantDue := time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)
+	if !resp.Dates.Due.Equal(wantDue) {
+		t.Errorf("Dates.Due = %v, want %v", resp.Dates.Due, wantDue)
+	}
+	wantCreated := time.Date(2025, 12, 1, 0, 0, 0, 0, time.UTC)
+	if !resp.Dates.Created.Equal(wantCreated) {
+		t.Errorf("Dates.Created = %v, want %v", resp.Dates.Created, wantCreated)
+	}
+	wantModified := time.Date(2025, 12, 2, 0, 0, 0, 0, time.UTC)
+	if !resp.Dates.Modified.Equal(wantModified) {
+		t.Errorf("Dates.Modified = %v, want %v", resp.Dates.Modified, wantModified)
+	}
+	if !resp.Dates.FirstCompleted.IsZero() {
+		t.Errorf("Dates.FirstCompleted = %v, want zero (job in progress)", resp.Dates.FirstCompleted)
+	}
+	if !resp.Dates.LastCompleted.IsZero() {
+		t.Errorf("Dates.LastCompleted = %v, want zero (job in progress)", resp.Dates.LastCompleted)
+	}
 }
 
 func TestListProjectJobs_ForwardsFiltersAndMapsItems(t *testing.T) {
