@@ -2,6 +2,7 @@ package job
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,14 +13,19 @@ import (
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 )
 
-const jobBasePath = "/jobs-api/v3/projects/"
+const (
+	jobBasePath     = "/jobs-api/v3/projects/"
+	accountBasePath = "/jobs-api/v3/accounts/"
+)
 
 var ErrNotFound = errors.New("job not found")
 
 // Job defines the job behaviour
 type Job interface {
 	GetJob(ctx context.Context, projectID, jobUID string) (GetJobResponse, error)
-	SearchByName(ctx context.Context, projectID, name string) (jobs []GetJobResponse, err error)
+	ListProjectJobs(ctx context.Context, projectID string, params ListProjectJobsParams) (ListJobsResponse, error)
+	ListAccountJobs(ctx context.Context, accountUID string, params ListAccountJobsParams) (ListJobsResponse, error)
+	SearchJobs(ctx context.Context, projectID string, req SearchJobsRequest) (ListJobsResponse, error)
 	Progress(ctx context.Context, projectID string, jobUID string) (GetJobProgressResponse, error)
 	ListFiles(ctx context.Context, projectID, jobUID string, limit, offset uint32) (ListJobFilesResponse, error)
 }
@@ -51,23 +57,113 @@ func (h httpJob) GetJob(ctx context.Context, projectID, jobUID string) (GetJobRe
 		return GetJobResponse{}, fmt.Errorf("failed to get job: %w", err)
 	}
 	response.Response.Code = code
-	return toGetJobResponse(response), nil
+	return toGetJobResponse(response)
 }
 
-// SearchByName searches all jobs of a project by name
-func (h httpJob) SearchByName(ctx context.Context, projectID, name string) ([]GetJobResponse, error) {
+// ListProjectJobs lists jobs within a project, applying the given filters.
+func (h httpJob) ListProjectJobs(ctx context.Context, projectID string, params ListProjectJobsParams) (ListJobsResponse, error) {
 	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs")
 
-	params := url.Values{}
-	params.Set("jobName", name)
-
-	var res getJobsResponse
-	_, _, err := h.client.GetJSON(ctx, reqURL, params, &res.Response.Data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get jobs: %w", err)
+	q := url.Values{}
+	if params.JobName != "" {
+		q.Set("jobName", params.JobName)
 	}
-	jobs := toGetJobsResponse(res)
-	return jobs, nil
+	if params.JobNumber != "" {
+		q.Set("jobNumber", params.JobNumber)
+	}
+	for _, uid := range params.TranslationJobUIDs {
+		q.Add("translationJobUids", uid)
+	}
+	for _, st := range params.JobStatus {
+		q.Add("translationJobStatus", st)
+	}
+	if params.Limit > 0 {
+		q.Set("limit", strconv.FormatUint(uint64(params.Limit), 10))
+	}
+	if params.Offset > 0 {
+		q.Set("offset", strconv.FormatUint(uint64(params.Offset), 10))
+	}
+	if params.SortBy != "" {
+		q.Set("sortBy", params.SortBy)
+	}
+	if params.SortDirection != "" {
+		q.Set("sortDirection", params.SortDirection)
+	}
+
+	var data listJobsData
+	_, code, err := h.client.GetJSON(ctx, reqURL, q, &data)
+	if err != nil && code == http.StatusNotFound {
+		return ListJobsResponse{}, ErrNotFound
+	}
+	if err != nil {
+		return ListJobsResponse{}, fmt.Errorf("failed to list jobs: %w", err)
+	}
+	return toListJobsResponse(data)
+}
+
+// ListAccountJobs lists jobs within an account, applying the given filters.
+func (h httpJob) ListAccountJobs(ctx context.Context, accountUID string, params ListAccountJobsParams) (ListJobsResponse, error) {
+	reqURL := path.Join(accountBasePath, url.PathEscape(accountUID), "jobs")
+
+	q := url.Values{}
+	if params.JobName != "" {
+		q.Set("jobName", params.JobName)
+	}
+	for _, pid := range params.ProjectIDs {
+		q.Add("projectIds", pid)
+	}
+	for _, st := range params.JobStatus {
+		q.Add("translationJobStatus", st)
+	}
+	if params.WithPriority {
+		q.Set("withPriority", "true")
+	}
+	if params.Limit > 0 {
+		q.Set("limit", strconv.FormatUint(uint64(params.Limit), 10))
+	}
+	if params.Offset > 0 {
+		q.Set("offset", strconv.FormatUint(uint64(params.Offset), 10))
+	}
+	if params.SortBy != "" {
+		q.Set("sortBy", params.SortBy)
+	}
+	if params.SortDirection != "" {
+		q.Set("sortDirection", params.SortDirection)
+	}
+
+	var data listJobsData
+	_, code, err := h.client.GetJSON(ctx, reqURL, q, &data)
+	if err != nil && code == http.StatusNotFound {
+		return ListJobsResponse{}, ErrNotFound
+	}
+	if err != nil {
+		return ListJobsResponse{}, fmt.Errorf("failed to list account jobs: %w", err)
+	}
+	return toListJobsResponse(data)
+}
+
+// SearchJobs finds jobs by file URIs, hashcodes, or job UIDs.
+func (h httpJob) SearchJobs(ctx context.Context, projectID string, req SearchJobsRequest) (ListJobsResponse, error) {
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", "search")
+
+	body, err := json.Marshal(map[string][]string{
+		"fileUris":           req.FileURIs,
+		"hashcodes":          req.Hashcodes,
+		"translationJobUids": req.TranslationJobUIDs,
+	})
+	if err != nil {
+		return ListJobsResponse{}, fmt.Errorf("failed to encode search request: %w", err)
+	}
+
+	var data listJobsData
+	_, code, err := h.client.PostJSON(ctx, reqURL, body, &data)
+	if err != nil && code == http.StatusNotFound {
+		return ListJobsResponse{}, ErrNotFound
+	}
+	if err != nil {
+		return ListJobsResponse{}, fmt.Errorf("failed to search jobs: %w", err)
+	}
+	return toListJobsResponse(data)
 }
 
 // ListFiles returns a single page of source files attached to a translation job.
