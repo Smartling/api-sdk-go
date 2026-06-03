@@ -8,7 +8,7 @@ import (
 )
 
 // JobSummary is a single row in a jobs listing. ProjectID and Priority are
-// only populated by the account-level listing.
+// only returned by the account-level endpoint and are the zero value otherwise.
 type JobSummary struct {
 	TranslationJobUID string
 	JobName           string
@@ -34,22 +34,18 @@ type ListProjectJobsParams struct {
 	JobNumber          string
 	TranslationJobUIDs []string
 	JobStatus          []string
-	Limit              uint32
-	Offset             uint32
-	SortBy             string
-	SortDirection      string
+	Page               Page
+	Sort               Sort
 }
 
 // ListAccountJobsParams carries filters for listing jobs within an account.
 type ListAccountJobsParams struct {
-	JobName       string
-	ProjectIDs    []string
-	JobStatus     []string
-	WithPriority  bool
-	Limit         uint32
-	Offset        uint32
-	SortBy        string
-	SortDirection string
+	JobName      string
+	ProjectIDs   []string
+	JobStatus    []string
+	WithPriority bool
+	Page         Page
+	Sort         Sort
 }
 
 // SearchJobsRequest is the body of the jobs search endpoint.
@@ -105,4 +101,14 @@ func toListJobsResponse(d listJobsData) (ListJobsResponse, error) {
 		})
 	}
 	return ListJobsResponse{Items: items, TotalCount: d.TotalCount}, nil
+}
+
+type Page struct {
+	Limit  uint32
+	Offset uint32
+}
+
+type Sort struct {
+	SortBy        string
+	SortDirection string
 }

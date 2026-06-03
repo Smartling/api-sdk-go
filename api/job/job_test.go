@@ -152,7 +152,7 @@ func TestListProjectJobs_ForwardsFiltersAndMapsItems(t *testing.T) {
 	resp, err := j.ListProjectJobs(context.Background(), "projectId-xyz", ListProjectJobsParams{
 		JobName:   "Release",
 		JobStatus: []string{"IN_PROGRESS"},
-		Limit:     10,
+		Page:      Page{Limit: 10},
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

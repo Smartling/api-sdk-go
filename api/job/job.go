@@ -77,17 +77,17 @@ func (h httpJob) ListProjectJobs(ctx context.Context, projectID string, params L
 	for _, st := range params.JobStatus {
 		q.Add("translationJobStatus", st)
 	}
-	if params.Limit > 0 {
-		q.Set("limit", strconv.FormatUint(uint64(params.Limit), 10))
+	if params.Page.Limit > 0 {
+		q.Set("limit", strconv.FormatUint(uint64(params.Page.Limit), 10))
 	}
-	if params.Offset > 0 {
-		q.Set("offset", strconv.FormatUint(uint64(params.Offset), 10))
+	if params.Page.Offset > 0 {
+		q.Set("offset", strconv.FormatUint(uint64(params.Page.Offset), 10))
 	}
-	if params.SortBy != "" {
-		q.Set("sortBy", params.SortBy)
+	if params.Sort.SortBy != "" {
+		q.Set("sortBy", params.Sort.SortBy)
 	}
-	if params.SortDirection != "" {
-		q.Set("sortDirection", params.SortDirection)
+	if params.Sort.SortDirection != "" {
+		q.Set("sortDirection", params.Sort.SortDirection)
 	}
 
 	var data listJobsData
@@ -118,17 +118,17 @@ func (h httpJob) ListAccountJobs(ctx context.Context, accountUID string, params 
 	if params.WithPriority {
 		q.Set("withPriority", "true")
 	}
-	if params.Limit > 0 {
-		q.Set("limit", strconv.FormatUint(uint64(params.Limit), 10))
+	if params.Page.Limit > 0 {
+		q.Set("limit", strconv.FormatUint(uint64(params.Page.Limit), 10))
 	}
-	if params.Offset > 0 {
-		q.Set("offset", strconv.FormatUint(uint64(params.Offset), 10))
+	if params.Page.Offset > 0 {
+		q.Set("offset", strconv.FormatUint(uint64(params.Page.Offset), 10))
 	}
-	if params.SortBy != "" {
-		q.Set("sortBy", params.SortBy)
+	if params.Sort.SortBy != "" {
+		q.Set("sortBy", params.Sort.SortBy)
 	}
-	if params.SortDirection != "" {
-		q.Set("sortDirection", params.SortDirection)
+	if params.Sort.SortDirection != "" {
+		q.Set("sortDirection", params.Sort.SortDirection)
 	}
 
 	var data listJobsData
@@ -146,11 +146,18 @@ func (h httpJob) ListAccountJobs(ctx context.Context, accountUID string, params 
 func (h httpJob) SearchJobs(ctx context.Context, projectID string, req SearchJobsRequest) (ListJobsResponse, error) {
 	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", "search")
 
-	body, err := json.Marshal(map[string][]string{
-		"fileUris":           req.FileURIs,
-		"hashcodes":          req.Hashcodes,
-		"translationJobUids": req.TranslationJobUIDs,
-	})
+	payload := map[string][]string{}
+	if len(req.FileURIs) > 0 {
+		payload["fileUris"] = req.FileURIs
+	}
+	if len(req.Hashcodes) > 0 {
+		payload["hashcodes"] = req.Hashcodes
+	}
+	if len(req.TranslationJobUIDs) > 0 {
+		payload["translationJobUids"] = req.TranslationJobUIDs
+	}
+
+	body, err := json.Marshal(payload)
 	if err != nil {
 		return ListJobsResponse{}, fmt.Errorf("failed to encode search request: %w", err)
 	}
