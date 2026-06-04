@@ -56,17 +56,17 @@ func (h httpJobLocale) Remove(ctx context.Context, projectID, jobUID, targetLoca
 	return nil
 }
 
-func localeURL(projectID, translationJobUID, targetLocaleID string) string {
+func localeURL(projectID, jobUID, targetLocaleID string) string {
 	return path.Join(jobBasePath, url.PathEscape(projectID), "jobs",
-		url.PathEscape(translationJobUID), "locales", url.PathEscape(targetLocaleID))
+		url.PathEscape(jobUID), "locales", url.PathEscape(targetLocaleID))
 }
 
-func requireParams(projectID, translationJobUID, targetLocaleID string) error {
+func requireParams(projectID, jobUID, targetLocaleID string) error {
 	switch {
 	case projectID == "":
 		return smerror.ErrEmptyParam("projectID")
-	case translationJobUID == "":
-		return smerror.ErrEmptyParam("translationJobUID")
+	case jobUID == "":
+		return smerror.ErrEmptyParam("jobUID")
 	case targetLocaleID == "":
 		return smerror.ErrEmptyParam("targetLocaleID")
 	}
