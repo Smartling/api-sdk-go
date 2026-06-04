@@ -74,6 +74,17 @@ func (c *Client) GetJSON(
 	return c.requestJSON(ctx, "GET", url, params, nil, result, options...)
 }
 
+// DeleteJSON performs DELETE request to the Smartling API and tries to decode
+// the answer as JSON.
+func (c *Client) DeleteJSON(
+	ctx context.Context,
+	url string,
+	result any,
+	options ...any,
+) (json.RawMessage, int, error) {
+	return c.requestJSON(ctx, "DELETE", url, nil, nil, result, options...)
+}
+
 // Get performs raw GET request to the Smartling API. You probably do not want
 // to use it.
 func (c *Client) Get(
