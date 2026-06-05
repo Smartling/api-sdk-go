@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
 	"strconv"
 
+	jobapi "github.com/Smartling/api-sdk-go/api/job"
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
@@ -88,7 +90,11 @@ func (h httpJobString) Add(ctx context.Context, projectID, translationJobUID str
 	}
 	reqURL := path.Join(stringsURL(projectID, translationJobUID), "add")
 	var res Result
-	if _, _, err := h.client.PostJSON(ctx, reqURL, payload, &res); err != nil {
+	_, code, err := h.client.PostJSON(ctx, reqURL, payload, &res)
+	if err != nil && code == http.StatusNotFound {
+		return Result{}, jobapi.ErrNotFound
+	}
+	if err != nil {
 		return Result{}, fmt.Errorf("failed to add strings to job: %w", err)
 	}
 	return res, nil
@@ -106,7 +112,11 @@ func (h httpJobString) Remove(ctx context.Context, projectID, translationJobUID 
 	}
 	reqURL := path.Join(stringsURL(projectID, translationJobUID), "remove")
 	var res Result
-	if _, _, err := h.client.PostJSON(ctx, reqURL, payload, &res); err != nil {
+	_, code, err := h.client.PostJSON(ctx, reqURL, payload, &res)
+	if err != nil && code == http.StatusNotFound {
+		return Result{}, jobapi.ErrNotFound
+	}
+	if err != nil {
 		return Result{}, fmt.Errorf("failed to remove strings from job: %w", err)
 	}
 	return res, nil

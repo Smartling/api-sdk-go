@@ -3,6 +3,7 @@ package jobstring
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,9 +11,27 @@ import (
 	"testing"
 	"time"
 
+	jobapi "github.com/Smartling/api-sdk-go/api/job"
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
+
+func TestAddRemove_NotFoundMapsToErrNotFound(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"response":{"code":"NOT_FOUND","data":null}}`))
+	}
+
+	js := newTestJobString(t, handler)
+
+	if _, err := js.Add(context.Background(), "p1", "missing", AddRequest{Hashcodes: []string{"h1"}}); !errors.Is(err, jobapi.ErrNotFound) {
+		t.Errorf("Add err = %v, want jobapi.ErrNotFound", err)
+	}
+	if _, err := js.Remove(context.Background(), "p1", "missing", RemoveRequest{Hashcodes: []string{"h1"}}); !errors.Is(err, jobapi.ErrNotFound) {
+		t.Errorf("Remove err = %v, want jobapi.ErrNotFound", err)
+	}
+}
 
 func newTestJobString(t *testing.T, handler http.HandlerFunc) JobString {
 	t.Helper()

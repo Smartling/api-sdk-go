@@ -2,15 +2,34 @@ package locale
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	jobapi "github.com/Smartling/api-sdk-go/api/job"
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
+
+func TestAddRemove_NotFoundMapsToErrNotFound(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"response":{"code":"NOT_FOUND","data":null}}`))
+	}
+
+	jl := newTestJobLocale(t, handler)
+
+	if err := jl.Add(context.Background(), "p1", "missing", "fr-FR"); !errors.Is(err, jobapi.ErrNotFound) {
+		t.Errorf("Add err = %v, want jobapi.ErrNotFound", err)
+	}
+	if err := jl.Remove(context.Background(), "p1", "missing", "fr-FR"); !errors.Is(err, jobapi.ErrNotFound) {
+		t.Errorf("Remove err = %v, want jobapi.ErrNotFound", err)
+	}
+}
 
 func newTestJobLocale(t *testing.T, handler http.HandlerFunc) JobLocale {
 	t.Helper()
@@ -103,11 +122,11 @@ func TestAddRemove_EmptyParamsRejectedBeforeRequest(t *testing.T) {
 	}
 }
 
-func TestAdd_NotFoundIsWrapped(t *testing.T) {
+func TestAdd_ServerErrorIsWrapped(t *testing.T) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write([]byte(`{"response":{"code":"NOT_FOUND","data":null}}`))
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"response":{"code":"GENERAL_ERROR"}}`))
 	}
 
 	jl := newTestJobLocale(t, handler)

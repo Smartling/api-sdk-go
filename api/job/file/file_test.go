@@ -142,6 +142,23 @@ func TestList_NotFoundMapsToErrNotFound(t *testing.T) {
 	}
 }
 
+func TestAddRemove_NotFoundMapsToErrNotFound(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"response":{"code":"NOT_FOUND","data":null}}`))
+	}
+
+	jf := newTestJobFile(t, handler)
+
+	if _, err := jf.Add(context.Background(), "p1", "missing", AddRequest{FileURI: "a.json"}); !errors.Is(err, jobapi.ErrNotFound) {
+		t.Errorf("Add err = %v, want jobapi.ErrNotFound", err)
+	}
+	if _, err := jf.Remove(context.Background(), "p1", "missing", RemoveRequest{FileURI: "a.json"}); !errors.Is(err, jobapi.ErrNotFound) {
+		t.Errorf("Remove err = %v, want jobapi.ErrNotFound", err)
+	}
+}
+
 func TestAddRemove_EmptyParamsRejectedBeforeRequest(t *testing.T) {
 	called := false
 	jf := newTestJobFile(t, func(http.ResponseWriter, *http.Request) { called = true })

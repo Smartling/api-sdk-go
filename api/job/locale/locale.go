@@ -3,9 +3,11 @@ package locale
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
 
+	jobapi "github.com/Smartling/api-sdk-go/api/job"
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
@@ -38,7 +40,11 @@ func (h httpJobLocale) Add(ctx context.Context, projectID, jobUID, targetLocaleI
 		return err
 	}
 	reqURL := localeURL(projectID, jobUID, targetLocaleID)
-	if _, _, err := h.client.PostJSON(ctx, reqURL, nil, nil); err != nil {
+	_, code, err := h.client.PostJSON(ctx, reqURL, nil, nil)
+	if err != nil && code == http.StatusNotFound {
+		return jobapi.ErrNotFound
+	}
+	if err != nil {
 		return fmt.Errorf("failed to add locale to job: %w", err)
 	}
 	return nil
@@ -50,7 +56,11 @@ func (h httpJobLocale) Remove(ctx context.Context, projectID, jobUID, targetLoca
 		return err
 	}
 	reqURL := localeURL(projectID, jobUID, targetLocaleID)
-	if _, _, err := h.client.DeleteJSON(ctx, reqURL, nil); err != nil {
+	_, code, err := h.client.DeleteJSON(ctx, reqURL, nil)
+	if err != nil && code == http.StatusNotFound {
+		return jobapi.ErrNotFound
+	}
+	if err != nil {
 		return fmt.Errorf("failed to remove locale from job: %w", err)
 	}
 	return nil

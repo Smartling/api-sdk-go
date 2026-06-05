@@ -79,7 +79,11 @@ func (h httpJobFile) Add(ctx context.Context, projectID, translationJobUID strin
 	}
 	reqURL := path.Join(fileURL(projectID, translationJobUID), "add")
 	var res Result
-	if _, _, err := h.client.PostJSON(ctx, reqURL, payload, &res); err != nil {
+	_, code, err := h.client.PostJSON(ctx, reqURL, payload, &res)
+	if err != nil && code == http.StatusNotFound {
+		return Result{}, jobapi.ErrNotFound
+	}
+	if err != nil {
 		return Result{}, fmt.Errorf("failed to add file to job: %w", err)
 	}
 	return res, nil
@@ -96,7 +100,11 @@ func (h httpJobFile) Remove(ctx context.Context, projectID, translationJobUID st
 	}
 	reqURL := path.Join(fileURL(projectID, translationJobUID), "remove")
 	var res Result
-	if _, _, err := h.client.PostJSON(ctx, reqURL, payload, &res); err != nil {
+	_, code, err := h.client.PostJSON(ctx, reqURL, payload, &res)
+	if err != nil && code == http.StatusNotFound {
+		return Result{}, jobapi.ErrNotFound
+	}
+	if err != nil {
 		return Result{}, fmt.Errorf("failed to remove file from job: %w", err)
 	}
 	return res, nil
