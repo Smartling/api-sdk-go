@@ -41,7 +41,7 @@ func (c *HttpAPIClient) GetFileStatus(
 	_, _, err := c.Client.GetJSON(
 		ctx,
 		fmt.Sprintf(endpointFileStatus, projectID),
-		smfile.FileURIRequest{fileURI}.GetQuery(),
+		smfile.FileURIRequest{FileURI: fileURI}.GetQuery(),
 		&status,
 	)
 	if err != nil {
