@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -309,6 +310,77 @@ func TestFindJobsByStrings_PostsBodyAndMapsItems(t *testing.T) {
 	if item.HashcodesByLocale[0].LocaleID != "fr-FR" ||
 		!equalStringSlices(item.HashcodesByLocale[0].Hashcodes, []string{"h1"}) {
 		t.Errorf("first locale = %+v, want fr-FR/[h1]", item.HashcodesByLocale[0])
+	}
+}
+
+func TestFindJobsByStrings_DueDateParsing(t *testing.T) {
+	tests := []struct {
+		name    string
+		dueDate string
+		wantErr bool
+		want    time.Time
+	}{
+		{
+			name:    "valid RFC3339 date is parsed",
+			dueDate: `"2015-11-21T11:51:17Z"`,
+			want:    time.Date(2015, 11, 21, 11, 51, 17, 0, time.UTC),
+		},
+		{
+			name:    "malformed date returns error",
+			dueDate: `"not-a-date"`,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{
+					"response": {"code": "SUCCESS", "data": {
+						"totalCount": 1,
+						"items": [{
+							"translationJobUid": "u1",
+							"jobName": "Found",
+							"dueDate": ` + tt.dueDate + `,
+							"hashcodesByLocale": [{"localeId": "fr-FR", "hashcodes": ["h1"]}]
+						}]
+					}}
+				}`))
+			}
+
+			j, _ := newTestJob(t, handler)
+
+			resp, err := j.FindJobsByStrings(context.Background(), "p1", FindJobsByStringsRequest{
+				Hashcodes: []string{"h1"},
+			})
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !resp.Items[0].DueDate.Equal(tt.want) {
+				t.Errorf("DueDate = %v, want %v", resp.Items[0].DueDate, tt.want)
+			}
+		})
+	}
+}
+
+func TestFindJobsByStrings_NotFoundMapsToErrNotFound(t *testing.T) {
+	handler := func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}
+
+	j, _ := newTestJob(t, handler)
+
+	_, err := j.FindJobsByStrings(context.Background(), "p1", FindJobsByStringsRequest{
+		Hashcodes: []string{"h1"},
+	})
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("err = %v, want ErrNotFound", err)
 	}
 }
 
