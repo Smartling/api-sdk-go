@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -250,6 +251,136 @@ func TestSearchJobs_PostsBodyAndMapsItems(t *testing.T) {
 	}
 	if len(resp.Items) != 1 || resp.Items[0].JobName != "Found" {
 		t.Fatalf("Items = %v, want one Found", resp.Items)
+	}
+}
+
+func TestFindJobsByStrings_PostsBodyAndMapsItems(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("method = %s, want POST", r.Method)
+		}
+		if !strings.HasSuffix(r.URL.Path, "/projects/p1/jobs/find-jobs-by-strings") {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		body, _ := io.ReadAll(r.Body)
+		var got map[string][]string
+		_ = json.Unmarshal(body, &got)
+		if !equalStringSlices(got["hashcodes"], []string{"h1"}) {
+			t.Errorf("hashcodes = %v, want [h1]", got["hashcodes"])
+		}
+		if !equalStringSlices(got["localeIds"], []string{"fr-FR"}) {
+			t.Errorf("localeIds = %v, want [fr-FR]", got["localeIds"])
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"response": {"code": "SUCCESS", "data": {
+				"totalCount": 1,
+				"items": [{
+					"translationJobUid": "u1",
+					"jobName": "Found",
+					"dueDate": null,
+					"hashcodesByLocale": [
+						{"localeId": "fr-FR", "hashcodes": ["h1"]},
+						{"localeId": "de-DE", "hashcodes": ["h1"]}
+					]
+				}]
+			}}
+		}`))
+	}
+
+	j, _ := newTestJob(t, handler)
+
+	resp, err := j.FindJobsByStrings(context.Background(), "p1", FindJobsByStringsRequest{
+		Hashcodes: []string{"h1"},
+		LocaleIDs: []string{"fr-FR"},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.TotalCount != 1 || len(resp.Items) != 1 {
+		t.Fatalf("resp = %+v, want totalCount 1 / one item", resp)
+	}
+	item := resp.Items[0]
+	if item.TranslationJobUID != "u1" || item.JobName != "Found" {
+		t.Errorf("item = %+v, want u1/Found", item)
+	}
+	if len(item.HashcodesByLocale) != 2 {
+		t.Fatalf("HashcodesByLocale = %+v, want 2 locales", item.HashcodesByLocale)
+	}
+	if item.HashcodesByLocale[0].LocaleID != "fr-FR" ||
+		!equalStringSlices(item.HashcodesByLocale[0].Hashcodes, []string{"h1"}) {
+		t.Errorf("first locale = %+v, want fr-FR/[h1]", item.HashcodesByLocale[0])
+	}
+}
+
+func TestFindJobsByStrings_DueDateParsing(t *testing.T) {
+	tests := []struct {
+		name    string
+		dueDate string
+		wantErr bool
+		want    time.Time
+	}{
+		{
+			name:    "valid RFC3339 date is parsed",
+			dueDate: `"2015-11-21T11:51:17Z"`,
+			want:    time.Date(2015, 11, 21, 11, 51, 17, 0, time.UTC),
+		},
+		{
+			name:    "malformed date returns error",
+			dueDate: `"not-a-date"`,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{
+					"response": {"code": "SUCCESS", "data": {
+						"totalCount": 1,
+						"items": [{
+							"translationJobUid": "u1",
+							"jobName": "Found",
+							"dueDate": ` + tt.dueDate + `,
+							"hashcodesByLocale": [{"localeId": "fr-FR", "hashcodes": ["h1"]}]
+						}]
+					}}
+				}`))
+			}
+
+			j, _ := newTestJob(t, handler)
+
+			resp, err := j.FindJobsByStrings(context.Background(), "p1", FindJobsByStringsRequest{
+				Hashcodes: []string{"h1"},
+			})
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !resp.Items[0].DueDate.Equal(tt.want) {
+				t.Errorf("DueDate = %v, want %v", resp.Items[0].DueDate, tt.want)
+			}
+		})
+	}
+}
+
+func TestFindJobsByStrings_NotFoundMapsToErrNotFound(t *testing.T) {
+	handler := func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}
+
+	j, _ := newTestJob(t, handler)
+
+	_, err := j.FindJobsByStrings(context.Background(), "p1", FindJobsByStringsRequest{
+		Hashcodes: []string{"h1"},
+	})
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("err = %v, want ErrNotFound", err)
 	}
 }
 

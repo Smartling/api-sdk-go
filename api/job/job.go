@@ -26,6 +26,7 @@ type Job interface {
 	ListProjectJobs(ctx context.Context, projectID string, params ListProjectJobsParams) (ListJobsResponse, error)
 	ListAccountJobs(ctx context.Context, accountUID string, params ListAccountJobsParams) (ListJobsResponse, error)
 	SearchJobs(ctx context.Context, projectID string, req SearchJobsRequest) (ListJobsResponse, error)
+	FindJobsByStrings(ctx context.Context, projectID string, req FindJobsByStringsRequest) (FindJobsByStringsResponse, error)
 	Progress(ctx context.Context, projectID string, jobUID string) (GetJobProgressResponse, error)
 }
 
@@ -170,6 +171,35 @@ func (h httpJob) SearchJobs(ctx context.Context, projectID string, req SearchJob
 		return ListJobsResponse{}, fmt.Errorf("failed to search jobs: %w", err)
 	}
 	return toListJobsResponse(data)
+}
+
+// FindJobsByStrings finds jobs that contain the given strings (by hashcode) in
+// the given locales.
+func (h httpJob) FindJobsByStrings(ctx context.Context, projectID string, req FindJobsByStringsRequest) (FindJobsByStringsResponse, error) {
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", "find-jobs-by-strings")
+
+	payload := map[string][]string{}
+	if len(req.Hashcodes) > 0 {
+		payload["hashcodes"] = req.Hashcodes
+	}
+	if len(req.LocaleIDs) > 0 {
+		payload["localeIds"] = req.LocaleIDs
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return FindJobsByStringsResponse{}, fmt.Errorf("failed to encode find-jobs-by-strings request: %w", err)
+	}
+
+	var data findJobsByStringsData
+	_, code, err := h.client.PostJSON(ctx, reqURL, body, &data)
+	if err != nil && code == http.StatusNotFound {
+		return FindJobsByStringsResponse{}, ErrNotFound
+	}
+	if err != nil {
+		return FindJobsByStringsResponse{}, fmt.Errorf("failed to find jobs by strings: %w", err)
+	}
+	return toFindJobsByStringsResponse(data)
 }
 
 // Progress returns a job related progress
