@@ -59,7 +59,7 @@ func ExampleHttpAPIClient_ListFiles() {
 	listRequest := smfile.FilesListRequest{
 		Cursor:             smfile.LimitOffsetRequest{Limit: 10},
 		URIMask:            "master",
-		LastUploadedBefore: utc.UTC{time.Now().AddDate(0, -1, 0)},
+		LastUploadedBefore: utc.UTC{Time: time.Now().AddDate(0, -1, 0)},
 		FileTypes:          []smfile.FileType{smfile.FileTypeJSON, smfile.FileTypeJavaProperties},
 	}
 
