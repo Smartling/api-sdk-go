@@ -91,11 +91,27 @@ func TestAddRemove_EmptyParamsRejectedBeforeRequest(t *testing.T) {
 	called := false
 	jf := newTestJobFile(t, func(http.ResponseWriter, *http.Request) { called = true })
 
-	if _, err := jf.Add(context.Background(), "p1", "job-1", AddRequest{}); !smerror.IsErrEmptyParam(err) {
-		t.Errorf("Add with no fileUri err = %v, want empty-param error", err)
+	cases := []struct {
+		name                       string
+		projectID, jobUID, fileURI string
+	}{
+		{"empty project", "", "job-1", "a.json"},
+		{"empty job", "p1", "", "a.json"},
+		{"empty fileUri", "p1", "job-1", ""},
 	}
-	if _, err := jf.Remove(context.Background(), "", "job-1", RemoveRequest{FileURI: "a.json"}); !smerror.IsErrEmptyParam(err) {
-		t.Errorf("Remove with empty project err = %v, want empty-param error", err)
+	for _, c := range cases {
+		t.Run("add/"+c.name, func(t *testing.T) {
+			_, err := jf.Add(context.Background(), c.projectID, c.jobUID, AddRequest{FileURI: c.fileURI})
+			if !smerror.IsErrEmptyParam(err) {
+				t.Errorf("Add err = %v, want empty-param error", err)
+			}
+		})
+		t.Run("remove/"+c.name, func(t *testing.T) {
+			_, err := jf.Remove(context.Background(), c.projectID, c.jobUID, RemoveRequest{FileURI: c.fileURI})
+			if !smerror.IsErrEmptyParam(err) {
+				t.Errorf("Remove err = %v, want empty-param error", err)
+			}
+		})
 	}
 
 	if called {
