@@ -3,6 +3,7 @@ package jobfile
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	jobapi "github.com/Smartling/api-sdk-go/api/job"
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
@@ -84,6 +86,59 @@ func TestRemove_PostsFileToRemovePath(t *testing.T) {
 
 	if _, err := jf.Remove(context.Background(), "p1", "job-1", RemoveRequest{FileURI: "a.json"}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestList_ForwardsPagingAndMapsItems(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("method = %s, want GET", r.Method)
+		}
+		if !strings.HasSuffix(r.URL.Path, "/jobs/job-1/files") {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		q := r.URL.Query()
+		if q.Get("limit") != "50" || q.Get("offset") != "100" {
+			t.Errorf("limit/offset = %q/%q, want 50/100", q.Get("limit"), q.Get("offset"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"response":{"code":"SUCCESS","data":{
+			"totalCount": 2,
+			"items": [
+				{"uri":"/a.json","localeIds":["fr-FR"]},
+				{"uri":"/b.xml"}
+			]
+		}}}`))
+	}
+
+	jf := newTestJobFile(t, handler)
+
+	page, err := jf.List(context.Background(), "p1", "job-1", 50, 100)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if page.TotalCount != 2 || len(page.Items) != 2 {
+		t.Fatalf("unexpected page: %+v", page)
+	}
+	if page.Items[0].FileURI != "/a.json" || len(page.Items[0].LocaleIDs) != 1 {
+		t.Errorf("Items[0] = %+v, want /a.json [fr-FR]", page.Items[0])
+	}
+	if page.Items[1].FileURI != "/b.xml" || len(page.Items[1].LocaleIDs) != 0 {
+		t.Errorf("Items[1] = %+v, want /b.xml []", page.Items[1])
+	}
+}
+
+func TestList_NotFoundMapsToErrNotFound(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"response":{"code":"NOT_FOUND","data":null}}`))
+	}
+
+	jf := newTestJobFile(t, handler)
+
+	if _, err := jf.List(context.Background(), "p1", "missing", 500, 0); !errors.Is(err, jobapi.ErrNotFound) {
+		t.Errorf("err = %v, want jobapi.ErrNotFound", err)
 	}
 }
 

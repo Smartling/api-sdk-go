@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 
+	jobapi "github.com/Smartling/api-sdk-go/api/job"
 	smclient "github.com/Smartling/api-sdk-go/helpers/sm_client"
 	smerror "github.com/Smartling/api-sdk-go/helpers/sm_error"
 )
@@ -31,11 +34,24 @@ type Result struct {
 	FailCount    int `json:"failCount"`
 }
 
-// JobFile manages the files attached to a translation job. Each call operates on
-// a single fileUri.
+// File is a single source file attached to a translation job.
+type File struct {
+	FileURI   string
+	LocaleIDs []string
+}
+
+// ListResponse is a single page of a job's source files.
+type ListResponse struct {
+	Items      []File
+	TotalCount int
+}
+
+// JobFile manages the files attached to a translation job. Add and Remove
+// operate on a single fileUri; List returns a page of the job's files.
 type JobFile interface {
 	Add(ctx context.Context, projectID, translationJobUID string, req AddRequest) (Result, error)
 	Remove(ctx context.Context, projectID, translationJobUID string, req RemoveRequest) (Result, error)
+	List(ctx context.Context, projectID, translationJobUID string, limit, offset uint32) (ListResponse, error)
 }
 
 // NewJobFile returns new JobFile implementation
@@ -86,18 +102,68 @@ func (h httpJobFile) Remove(ctx context.Context, projectID, translationJobUID st
 	return res, nil
 }
 
+// List returns a single page of source files attached to a translation job.
+func (h httpJobFile) List(ctx context.Context, projectID, translationJobUID string, limit, offset uint32) (ListResponse, error) {
+	if err := requireIDs(projectID, translationJobUID); err != nil {
+		return ListResponse{}, err
+	}
+	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs",
+		url.PathEscape(translationJobUID), "files")
+
+	params := url.Values{}
+	params.Set("limit", strconv.FormatUint(uint64(limit), 10))
+	params.Set("offset", strconv.FormatUint(uint64(offset), 10))
+
+	var page listFilesResponse
+	_, code, err := h.client.GetJSON(ctx, reqURL, params, &page.Response.Data)
+	if err != nil && code == http.StatusNotFound {
+		return ListResponse{}, jobapi.ErrNotFound
+	}
+	if err != nil {
+		return ListResponse{}, fmt.Errorf("failed to list job files: %w", err)
+	}
+
+	items := make([]File, 0, len(page.Response.Data.Items))
+	for _, item := range page.Response.Data.Items {
+		items = append(items, File{FileURI: item.URI, LocaleIDs: item.LocaleIDs})
+	}
+	return ListResponse{Items: items, TotalCount: page.Response.Data.TotalCount}, nil
+}
+
+// listFilesResponse is the raw decode shape for the job files listing.
+type listFilesResponse struct {
+	Response struct {
+		Code string `json:"code"`
+		Data struct {
+			TotalCount int `json:"totalCount"`
+			Items      []struct {
+				URI       string   `json:"uri"`
+				LocaleIDs []string `json:"localeIds"`
+			} `json:"items"`
+		} `json:"data"`
+	} `json:"response"`
+}
+
 func fileURL(projectID, translationJobUID string) string {
 	return path.Join(jobBasePath, url.PathEscape(projectID), "jobs",
 		url.PathEscape(translationJobUID), "file")
 }
 
-func requireFile(projectID, translationJobUID, fileURI string) error {
+func requireIDs(projectID, translationJobUID string) error {
 	switch {
 	case projectID == "":
 		return smerror.ErrEmptyParam("projectID")
 	case translationJobUID == "":
 		return smerror.ErrEmptyParam("translationJobUID")
-	case fileURI == "":
+	}
+	return nil
+}
+
+func requireFile(projectID, translationJobUID, fileURI string) error {
+	if err := requireIDs(projectID, translationJobUID); err != nil {
+		return err
+	}
+	if fileURI == "" {
 		return smerror.ErrEmptyParam("fileUri")
 	}
 	return nil

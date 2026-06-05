@@ -27,7 +27,6 @@ type Job interface {
 	ListAccountJobs(ctx context.Context, accountUID string, params ListAccountJobsParams) (ListJobsResponse, error)
 	SearchJobs(ctx context.Context, projectID string, req SearchJobsRequest) (ListJobsResponse, error)
 	Progress(ctx context.Context, projectID string, jobUID string) (GetJobProgressResponse, error)
-	ListFiles(ctx context.Context, projectID, jobUID string, limit, offset uint32) (ListJobFilesResponse, error)
 }
 
 // NewJob returns new Job implementation
@@ -171,36 +170,6 @@ func (h httpJob) SearchJobs(ctx context.Context, projectID string, req SearchJob
 		return ListJobsResponse{}, fmt.Errorf("failed to search jobs: %w", err)
 	}
 	return toListJobsResponse(data)
-}
-
-// ListFiles returns a single page of source files attached to a translation job.
-func (h httpJob) ListFiles(ctx context.Context, projectID, jobUID string, limit, offset uint32) (ListJobFilesResponse, error) {
-	reqURL := path.Join(jobBasePath, url.PathEscape(projectID), "jobs", url.PathEscape(jobUID), "files")
-
-	params := url.Values{}
-	params.Set("limit", strconv.FormatUint(uint64(limit), 10))
-	params.Set("offset", strconv.FormatUint(uint64(offset), 10))
-
-	var page listJobFilesResponse
-	_, code, err := h.client.GetJSON(ctx, reqURL, params, &page.Response.Data)
-	if err != nil && code == http.StatusNotFound {
-		return ListJobFilesResponse{}, ErrNotFound
-	}
-	if err != nil {
-		return ListJobFilesResponse{}, fmt.Errorf("failed to list job files: %w", err)
-	}
-
-	items := make([]JobFile, 0, len(page.Response.Data.Items))
-	for _, item := range page.Response.Data.Items {
-		items = append(items, JobFile{
-			FileURI:   item.URI,
-			LocaleIDs: item.LocaleIDs,
-		})
-	}
-	return ListJobFilesResponse{
-		Items:      items,
-		TotalCount: page.Response.Data.TotalCount,
-	}, nil
 }
 
 // Progress returns a job related progress
